@@ -1,0 +1,465 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Webhook Orders": {
+      "main": [
+        [
+          {
+            "node": "Detectar evento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detectar evento": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Normalizar DATA orden",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalizar DATA orden",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Fulfillment Event?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Fulfillment Event?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar DATA orden": {
+      "main": [
+        [
+          {
+            "node": "¿Orden existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Orden existe?": {
+      "main": [
+        [
+          {
+            "node": "Crear orden",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Actualizar orden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Fulfillment Event?": {
+      "main": [
+        [
+          {
+            "node": "Fulfillment Flag",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Muere aquí",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fulfillment Flag": {
+      "main": [
+        [
+          {
+            "node": "Actualizar estado Fulfillment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-17T03:28:35.843Z",
+  "id": "gKzUJJPRDvwDuNW3",
+  "isArchived": false,
+  "meta": null,
+  "name": "Shopify Chatbot - Estado de Pedido",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "shopify/orders",
+        "options": {
+          "responseData": "{ \"status\": \"ok\" }"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1360,
+        480
+      ],
+      "id": "b84e1ac5-7e22-42a3-b3dc-b1db2f3d6946",
+      "name": "Webhook Orders",
+      "webhookId": "5023ae7f-21b0-416e-bff1-da9e23fb982f"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "04a6a716-9777-4bf3-bb02-182e7be4e1b3",
+              "name": "shopify_topic",
+              "value": "={{$headers[\"x-shopify-topic\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1152,
+        480
+      ],
+      "id": "b85423e5-65eb-4cc9-b58e-7f62313573b1",
+      "name": "Detectar evento"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{$json.shopify_topic}}",
+                    "rightValue": "orders/create",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a7912853-a7b3-4599-aac4-fa0a20fcc5ca"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Crear orden"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a8ac6ed2-fd83-40da-b735-7070abc44b7d",
+                    "leftValue": "={{$json.shopify_topic}}",
+                    "rightValue": "orders/updated",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Actualizar orden"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b16ce940-8a20-442f-b8ca-75a351bb96a7",
+                    "leftValue": "={{$json.shopify_topic}}",
+                    "rightValue": "fulfillments/create",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Crear fulfillment"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "540eca61-f474-482b-afb2-9f9878ad427a",
+                    "leftValue": "={{$json.shopify_topic}}",
+                    "rightValue": "fulfillments/update",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Actualizar fulfillment"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -944,
+        448
+      ],
+      "id": "4fb81363-b2bb-44c8-addc-ba1c854b3ed3",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const order = $json;\n\nreturn [{\n  shopify_order_id: order.id,\n  order_number: order.order_number,\n  created_at: order.created_at,\n\n  customer: {\n    id: order.customer?.id || null,\n    email: order.customer?.email || order.email,\n    first_name: order.customer?.first_name || null,\n    last_name: order.customer?.last_name || null,\n  },\n\n  products: order.line_items.map(item => ({\n    line_item_id: item.id,\n    title: item.title,\n    sku: item.sku,\n    quantity: item.quantity,\n  })),\n\n  financial_status: order.financial_status,\n  fulfillment_status: order.fulfillment_status,\n  cancelled_at: order.cancelled_at,\n\n  source: \"shopify\",\n  updated_at: new Date().toISOString(),\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -688,
+        208
+      ],
+      "id": "2d99227d-3c7a-466b-9a97-dfaf881b2502",
+      "name": "Normalizar DATA orden"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "06e17fe4-fd72-4169-9182-0e293778e273",
+              "leftValue": "shopify_order_id",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -368,
+        208
+      ],
+      "id": "240f787b-d7ea-4003-ac99-3f003b5a3c64",
+      "name": "¿Orden existe?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b20b1939-c781-4216-85b2-8922a6af2017",
+      "name": "Crear orden"
+    },
+    {
+      "parameters": {
+        "operation": "update"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        224
+      ],
+      "id": "a98c3574-7f91-4c34-ac76-bea0e42dde05",
+      "name": "Actualizar orden"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "06e17fe4-fd72-4169-9182-0e293778e273",
+              "leftValue": "{{$json.shopify_topic.startsWith(\"fulfillments/\")}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -576,
+        528
+      ],
+      "id": "b9d3c9a6-848f-46e7-8c34-bea6a1fa9608",
+      "name": "¿Fulfillment Event?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        640
+      ],
+      "id": "5863857a-64d5-4b1e-8b9a-56ff5facae8f",
+      "name": "Muere aquí"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9a6531d-dfdd-4489-93d5-3221b1dabb9a",
+              "name": "has_fulfillment",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "2b218674-9689-4436-9ae4-5b61df5dd667",
+              "name": "bot_status",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "54b27823-4a7d-4196-9a93-7fc6f59f0eac",
+              "name": "bot_status_source",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -368,
+        432
+      ],
+      "id": "85d6a116-9675-4d00-b737-9938486ca1b3",
+      "name": "Fulfillment Flag"
+    },
+    {
+      "parameters": {
+        "operation": "update"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        432
+      ],
+      "id": "f9cb90ce-9361-4e5b-a8b1-fdfb4988da03",
+      "name": "Actualizar estado Fulfillment"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-17T03:28:35.846Z",
+      "createdAt": "2025-12-17T03:28:35.846Z",
+      "role": "workflow:owner",
+      "workflowId": "gKzUJJPRDvwDuNW3",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-17T03:28:35.000Z",
+  "versionId": "e612a38b-8eb0-449f-a76e-e13044474f72"
+}
