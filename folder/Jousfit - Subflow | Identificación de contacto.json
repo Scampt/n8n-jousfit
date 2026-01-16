@@ -1,0 +1,285 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Analizar información faltante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar información faltante": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Solicitar datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solicitar datos": {
+      "main": [
+        [
+          {
+            "node": "Registar nota interna",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registar nota interna": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta \"falta_datos_cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-17T03:27:26.122Z",
+  "id": "d6FgImxOeBCI17R9",
+  "isArchived": false,
+  "meta": null,
+  "name": "Jousfit - Subflow | Identificación de contacto",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -976,
+        240
+      ],
+      "id": "9b465448-6773-4460-a9af-9c83e19fce9b",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "const contact = $json.contact || {};\nconst entities = $json.entities || {};\n\nconst missing = [];\nif (!contact.name) missing.push(\"nombre\");\nif (!contact.email && !entities.email) missing.push(\"correo electrónico\");\nif (!entities.order) missing.push(\"número de pedido\");\n\nreturn [{\n  json: {\n    ...$json,\n    missing_fields: missing,\n    needs_identification: missing.length > 0\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -768,
+        240
+      ],
+      "id": "bc70b63d-65ef-4422-9000-dcdad9b8bb9c",
+      "name": "Analizar información faltante"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.needs_identification }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "fb30cd21-f654-4360-aada-6faa6898a6c5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Solicitar datos"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "17fe271b-ca66-4f02-ace7-f26780d2d04f",
+                    "leftValue": "={{ $json.needs_identification }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Datos completos"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -560,
+        240
+      ],
+      "id": "2c801c2c-dd0f-4f2f-a169-18f1a0005f55",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://n8n-jousfit-chatwoot.z5cvat.easypanel.host/api/v1/accounts/1/conversations/{{ $json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"Hola 💖, para ayudarte mejor necesito tu {{ $json.missing_fields.join(' y ') }}. ¿Podrías compartírmelo por favor?\",\n  \"message_type\": \"outgoing\",\n  \"private\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -192,
+        128
+      ],
+      "id": "c1d6baf6-9493-431d-857b-698ae6bf3e87",
+      "name": "Solicitar datos",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "L58LBR9E6dmzGUWX",
+          "name": "Header Auth account - API Token Chatwoot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://n8n-jousfit-chatwoot.z5cvat.easypanel.host/api/v1/accounts/1/conversations/{{ $json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"🧠 *Nota interna:* Falta {{ $json.missing_fields.join(' y ') }} del cliente. El bot solicitó la información.\",\n  \"message_type\": \"outgoing\",\n  \"private\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        16,
+        128
+      ],
+      "id": "3111bb01-6958-454e-a4d3-f5f55111fc4e",
+      "name": "Registar nota interna",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "L58LBR9E6dmzGUWX",
+          "name": "Header Auth account - API Token Chatwoot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://n8n-jousfit-chatwoot.z5cvat.easypanel.host/api/v1/accounts/1/conversations/{{ $json.conversation_id }}/labels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"labels\": [\"falta_datos_cliente\"]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        240,
+        128
+      ],
+      "id": "5c774288-9618-4113-ac47-24b8f564d502",
+      "name": "Agregar etiqueta \"falta_datos_cliente",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "L58LBR9E6dmzGUWX",
+          "name": "Header Auth account - API Token Chatwoot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-17T03:27:26.124Z",
+      "createdAt": "2025-12-17T03:27:26.124Z",
+      "role": "workflow:owner",
+      "workflowId": "d6FgImxOeBCI17R9",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-17T03:27:52.988Z",
+  "versionId": "2017c18e-9982-4388-8d0b-eed4b42fbff9"
+}
