@@ -1,0 +1,3388 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-15T18:51:29.000Z",
+    "createdAt": "2026-01-15T18:51:27.811Z",
+    "versionId": "9ab30587-c606-4bf3-8a4b-1439fb5adeb2",
+    "workflowId": "D8atTqTVY2B6CLC6",
+    "nodes": [
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "68f14a79-9b5c-4350-9c95-d414d1be09d3",
+                "name": "conversation_id",
+                "value": "={{ $json.body.conversation.id }}",
+                "type": "number"
+              },
+              {
+                "id": "f5578c6a-db13-4827-b7b0-2c8f197fdbf4",
+                "name": "contact_id",
+                "value": "={{ $json.body.conversation.contact_inbox.contact_id }}",
+                "type": "string"
+              },
+              {
+                "id": "86f31177-9e03-4240-9ec6-652cf55b2133",
+                "name": "inbox_id",
+                "value": "={{ $json.body.conversation.inbox_id }}",
+                "type": "string"
+              },
+              {
+                "id": "12ff3824-5374-4563-9360-bc95c0a76b53",
+                "name": "sender_type",
+                "value": "={{ $json.body.conversation.messages[0].sender_type }}",
+                "type": "string"
+              },
+              {
+                "id": "fe2cbea4-b982-4f13-8cd6-e0731b3b8388",
+                "name": "last_user_message",
+                "value": "={{ $json.body.content }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          848,
+          384
+        ],
+        "id": "0cdcebce-36f1-4fbf-8f01-13dbd749a7c3",
+        "name": "Normalizar payload Chatwoot"
+      },
+      {
+        "parameters": {
+          "jsCode": "const raw = ($json.last_user_message || '').trim();\n\nif (!raw) {\n  return [{ invalid: true, reason: 'empty' }];\n}\n\n// Normalizar espacios\nconst text = raw.replace(/\\s+/g, ' ');\n\n// Rechazar frases largas\nif (text.length > 60) {\n  return [{ invalid: true, reason: 'too_long' }];\n}\n\n// Solo letras y espacios (incluye acentos)\nconst nameRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?: [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+){1,3}$/;\n\nif (!nameRegex.test(text)) {\n  return [{ invalid: true, reason: 'invalid_format' }];\n}\n\n// Separar palabras\nconst parts = text.split(' ');\n\n// Rechazar palabras demasiado cortas (ej: “a b”)\nif (parts.some(p => p.length < 2)) {\n  return [{ invalid: true, reason: 'too_short_word' }];\n}\n\n// 👉 Capitalizar correctamente cada palabra\nconst capitalizedName = parts\n  .map(word =>\n    word.charAt(0).toUpperCase() +\n    word.slice(1).toLowerCase()\n  )\n  .join(' ');\n\nreturn [{\n  invalid: false,\n  name: capitalizedName\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1984,
+          128
+        ],
+        "id": "34ee0fa5-ad29-4ced-842e-aeb2397eb33c",
+        "name": "Validar nombre"
+      },
+      {
+        "parameters": {
+          "jsCode": "const email = ($json.last_user_message || '').trim();\nconst valid = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);\n\nreturn [{\n  email,\n  valid\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1968,
+          464
+        ],
+        "id": "f95e9f7e-e5c0-4196-8b97-02008e9f7a1e",
+        "name": "Validar email"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1744,
+          1088
+        ],
+        "id": "1deaec53-81fa-4938-9e8e-a7bc5fce068d",
+        "name": "Muere aquí"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "chatwoot-identity",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          304,
+          400
+        ],
+        "id": "aa40598f-9773-446a-a623-f5619c8c60c3",
+        "name": "Identidad",
+        "webhookId": "033895a8-a7e2-40fd-9175-674ec14c891e"
+      },
+      {
+        "parameters": {
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "conversation_id",
+                "value": "=eq.{{ $json.conversation_id }}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1072,
+          384
+        ],
+        "id": "b92c2aa2-bccf-4281-9a13-c5aa7596cab3",
+        "name": "Obtener contexto - Supabase",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "Y7VRgC9ZABE9kFDw",
+            "name": "Header Auth account - Supabase jousfit.com"
+          },
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ !$json.stage || $json.stage === 'new' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      },
+                      "id": "a48b273d-afd0-4f53-807f-ab8e5689622a"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Nuevo usuario"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "cbf1c09d-3c00-46ed-b231-52da1e9864f6",
+                      "leftValue": "={{ $json.stage === 'awaiting_name' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Pedir nombre"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "749aabb4-6ffa-48c5-8d00-2159b3993760",
+                      "leftValue": "={{ $json.stage === 'awaiting_email' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Pedir email"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "21ab4de2-3439-4358-8b55-04cf5fd623df",
+                      "leftValue": "={{ $json.stage === 'awaiting_phone' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Pedir teléfono"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "a3551b7a-ad49-4579-8f35-37857ee94de2",
+                      "leftValue": "={{ $json.stage === 'identity_captured' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Identidad completa"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "fbec96c6-aca3-4cda-b05d-93f3a4666471",
+                      "leftValue": "",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Default"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          1296,
+          320
+        ],
+        "id": "cf506ed6-95a5-4e88-bc50-636ede57bedf",
+        "name": "Etapa de Identidad - Router"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"awaiting_name\",\n  \"updated_at\": \"{{ $now }}\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1984,
+          -128
+        ],
+        "id": "f6867622-4e37-4ad4-9375-7ea2ea02f0cf",
+        "name": "Upsert contexto - iniciar identidad",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "9cb3e69c-ae8e-47d8-8d30-67a39b81cc6a",
+                "leftValue": "={{ $('Identidad').item.json.body.message_type === 'incoming' && $('Identidad').item.json.body.conversation.messages[0].sender_type === 'Contact'}}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          544,
+          400
+        ],
+        "id": "1274cf2f-66b8-42e7-9b49-d764662ad9f1",
+        "name": "¿Mensaje usuario?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "5cb05276-b97c-45e4-9017-39548a44e98f",
+                "leftValue": "={{ $json.invalid === false }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2176,
+          128
+        ],
+        "id": "a024d0c8-0b79-49c8-b7e8-5c48d4f953cf",
+        "name": "¿Nombre válido?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "5cb05276-b97c-45e4-9017-39548a44e98f",
+                "leftValue": "={{ $json.valid === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2192,
+          464
+        ],
+        "id": "81870a9a-4138-4e0c-ad6b-f62f734beff2",
+        "name": "¿Email válido?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"email\": {{ JSON.stringify($json.email) }},\n  \"stage\": \"awaiting_phone\",\n  \"updated_at\": \"{{ $now }}\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2480,
+          400
+        ],
+        "id": "284bccc4-c89e-4d0d-ad27-9c76fd10258f",
+        "name": "Upsert contexto - Guardar Email",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"name\": {{ JSON.stringify($json.name) }},\n  \"stage\": \"awaiting_email\",\n  \"updated_at\": \"{{ $now }}\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2496,
+          -64
+        ],
+        "id": "fe07c0ae-d302-4566-819c-1c9b77997c14",
+        "name": "Upsert contexto - Guardar Nombre y Apellido",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "90226c51-3496-448d-9698-5310e8cbceea",
+                "name": "last_user_message",
+                "value": "={{ $('Identidad').item.json.body.conversation.messages[0].content }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1728,
+          464
+        ],
+        "id": "6a679612-a042-458c-a04f-cc5a4f953b5a",
+        "name": "Extraer mensaje de usuario - email"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "90226c51-3496-448d-9698-5310e8cbceea",
+                "name": "last_user_message",
+                "value": "={{ $('Identidad').item.json.body.conversation.messages[0].content }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1792,
+          128
+        ],
+        "id": "8c73bedc-6751-468c-929a-4bcbb23b72b7",
+        "name": "Extraer mensaje de usuario - nombre & apellido"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "90226c51-3496-448d-9698-5310e8cbceea",
+                "name": "last_user_message",
+                "value": "={{ $('Identidad').item.json.body.conversation.messages[0].content }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1744,
+          800
+        ],
+        "id": "bcc6a7a8-4738-4354-ab7b-1432878fec49",
+        "name": "Extraer mensaje de usuario - teléfono"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "e73ee378-b686-4c2c-b5eb-2bb6f5f82ffd",
+                "name": "contact_id",
+                "value": "={{ $('Identidad').item.json.body.conversation.contact_inbox.contact_id }}",
+                "type": "number"
+              },
+              {
+                "id": "fca64a4c-d98e-4f52-b4a7-a24fe468327f",
+                "name": "contact_inbox_id",
+                "value": "={{ $('Identidad').item.json.body.conversation.contact_inbox.id }}",
+                "type": "number"
+              },
+              {
+                "id": "d1d277af-ee92-44e5-a118-64836c898150",
+                "name": "name",
+                "value": "={{ $json.name }}",
+                "type": "string"
+              },
+              {
+                "id": "7f72918f-e600-4518-8638-021a7fc22ac0",
+                "name": "email",
+                "value": "={{ ($json.email) }}",
+                "type": "string"
+              },
+              {
+                "id": "23f09897-abe8-4585-a4e7-0c4d6eedc8c7",
+                "name": "phone",
+                "value": "=+{{ ($json.phone) }}",
+                "type": "string"
+              },
+              {
+                "id": "5855caac-314d-477d-9954-8e71caac3f39",
+                "name": "inbox_id",
+                "value": "={{ $('Identidad').item.json.body.conversation.contact_inbox.inbox_id }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          3456,
+          896
+        ],
+        "id": "b5a7cfd0-562c-4ab5-aa37-1ccf83a3fbf4",
+        "name": "Datos para crear contacto - Chatwoot"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "c5f1f350-1e70-4f31-bdaa-f434989ac5ca",
+                "leftValue": "={{ $json.valid === true }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2224,
+          1056
+        ],
+        "id": "e4c5f639-5bff-4016-8c71-d489ad1f7e85",
+        "name": "¿Teléfono válido?"
+      },
+      {
+        "parameters": {
+          "jsCode": "const raw = ($json.last_user_message || '').trim();\n\n// 1️⃣ Limpiar el input: solo dígitos\nconst digits = raw.replace(/\\D/g, '');\n\n// 2️⃣ Normalizar a E.164 (MX + US)\nlet phoneE164 = null;\n\n// 🇲🇽 México\nif (digits.length === 10) {\n  phoneE164 = `+52${digits}`;\n}\nelse if (digits.length === 12 && digits.startsWith('52')) {\n  phoneE164 = `+${digits}`;\n}\nelse if (digits.length === 13 && digits.startsWith('521')) {\n  phoneE164 = `+${digits}`;\n}\n\n// 🇺🇸 Estados Unidos\nelse if (digits.length === 11 && digits.startsWith('1')) {\n  phoneE164 = `+${digits}`;\n}\nelse if (digits.length === 10) {\n  phoneE164 = `+1${digits}`;\n}\n\n// 3️⃣ Resultado determinista\nconst valid = phoneE164 !== null;\n\nreturn [{\n  valid,\n  phone_raw: raw,\n  phone_e164: phoneE164\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1952,
+          800
+        ],
+        "id": "b0e8b247-d0b3-4ccc-8df2-b362c1cbd960",
+        "name": "Validar teléfono y normalizar teléfono"
+      },
+      {
+        "parameters": {
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "conversation_id",
+                "value": "=eq.{{ $json.conversation_id }}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          3232,
+          896
+        ],
+        "id": "d79ea0ae-6199-443f-8184-738f61a88a79",
+        "name": "Cargar contexto para sincronizar contacto - Supabase",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "Y7VRgC9ZABE9kFDw",
+            "name": "Header Auth account - Supabase jousfit.com"
+          },
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "¡Hola! 😊\nPara comenzar, ¿me puedes compartir tu **nombre y apellido**, por favor?",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2176,
+          -128
+        ],
+        "id": "b5b073d0-58e7-4b6b-bd7f-63dba68bbf00",
+        "name": "Construir mensaje de identidad -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "Parece que ese no es un nombre válido.\n¿Podrías volver a intentarlo? ☺️",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2496,
+          160
+        ],
+        "id": "8d22674b-da20-4249-9421-2f915fd09e78",
+        "name": "Construir mensaje para pedir nombre y apellido -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "Perfecto 🙌\n¿Y tú número de teléfono?",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2784,
+          400
+        ],
+        "id": "84c30a27-a0a9-4bdb-ab69-22bd780051a5",
+        "name": "Construir mensaje del # -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "Parece que el correo no es válido 😅\n¿Podrías revisarlo?",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2480,
+          624
+        ],
+        "id": "f2931a3b-7138-4434-bffd-2947f33bd02f",
+        "name": "Construir mensaje email inválido -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "Gracias 😊\nYa tengo tus datos. ¿En qué te puedo ayudar hoy?",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2736,
+          896
+        ],
+        "id": "650e66c5-00d6-41cb-a10a-944f88260ffc",
+        "name": "Construir mensaje de datos listos -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "Ese número no parece válido 😅\n¿Podrías enviarlo con 10 dígitos o con código de país?\nEjemplo: +521234567890",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2480,
+          1152
+        ],
+        "id": "411d0605-c894-4e6c-98f9-2e7eebfde6eb",
+        "name": "Construir mensaje # inválido -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2496,
+          -288
+        ],
+        "id": "9c770dad-1ba6-433e-ade0-883d8eeb1e3b",
+        "name": "Preguntar por Nombre y Apellido",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2752,
+          160
+        ],
+        "id": "14b46bb5-46d9-4708-b8e4-f4c1c766dd83",
+        "name": "Preguntar nuevamente por Nombre y Apellido",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          3024,
+          400
+        ],
+        "id": "e0716f54-8b5c-4910-9f50-a65c251ab4bc",
+        "name": "Responder y seguir con Teléfono",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2784,
+          624
+        ],
+        "id": "1ac57e7a-1939-4bc6-a67c-eed581e95344",
+        "name": "Preguntar Email válido",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2976,
+          896
+        ],
+        "id": "208b623c-84dd-48a4-b518-e0a3ac8d0154",
+        "name": "Responder y preguntar en que le puedo ayudar",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2736,
+          1152
+        ],
+        "id": "53461b3b-b290-4660-b5df-c340ad232422",
+        "name": "Solicitar teléfono válido",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"phone\": {{ JSON.stringify($json.phone_e164) }},\n  \"stage\": \"identity_captured\",\n  \"updated_at\": \"{{ $now }}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2480,
+          896
+        ],
+        "id": "043bf84f-27bc-4842-8d49-438750155e71",
+        "name": "Upsert contexto Guardar identidad (teléfono) – Supabase",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          3008,
+          -64
+        ],
+        "id": "9d5f9cf1-c0bf-4c3b-8f78-6fbeca30775e",
+        "name": "Responder y seguir con Email",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "=Gracias {{ $('¿Nombre válido?').item.json.name.split(' ')[0] }} 😊\n¿Cuál es tu correo electrónico? ",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2752,
+          -64
+        ],
+        "id": "1c656409-ae9b-4bb3-987f-3e106f5f4ce4",
+        "name": "Construir mensaje de email -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/contacts/{{ $json.contact_id }}",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"name\": {{ JSON.stringify($json.name) }},\n  \"email\": {{ JSON.stringify($json.email) }},\n  \"phone_number\": {{ JSON.stringify($json.phone) }},\n  \"custom_attributes\": {\n    \"identity_completed\": true,\n    \"captured_by_bot\": true,\n    \"identity_completed_at\": \"{{ $now }}\"\n  }\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          3712,
+          896
+        ],
+        "id": "9f84520e-fd9f-4826-a119-039e4b9d7a92",
+        "name": "Actualizar contacto en Chatwoot - Datos básicos",
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Normalizar payload Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Obtener contexto - Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validar nombre": {
+        "main": [
+          [
+            {
+              "node": "¿Nombre válido?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Identidad": {
+        "main": [
+          [
+            {
+              "node": "¿Mensaje usuario?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener contexto - Supabase": {
+        "main": [
+          [
+            {
+              "node": "Etapa de Identidad - Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Etapa de Identidad - Router": {
+        "main": [
+          [
+            {
+              "node": "Upsert contexto - iniciar identidad",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Extraer mensaje de usuario - nombre & apellido",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Extraer mensaje de usuario - email",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Extraer mensaje de usuario - teléfono",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Muere aquí",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Muere aquí",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert contexto - iniciar identidad": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje de identidad -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Mensaje usuario?": {
+        "main": [
+          [
+            {
+              "node": "Normalizar payload Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      },
+      "¿Nombre válido?": {
+        "main": [
+          [
+            {
+              "node": "Upsert contexto - Guardar Nombre y Apellido",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Construir mensaje para pedir nombre y apellido -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validar email": {
+        "main": [
+          [
+            {
+              "node": "¿Email válido?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert contexto - Guardar Nombre y Apellido": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje de email -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Email válido?": {
+        "main": [
+          [
+            {
+              "node": "Upsert contexto - Guardar Email",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Construir mensaje email inválido -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert contexto - Guardar Email": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje del # -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extraer mensaje de usuario - email": {
+        "main": [
+          [
+            {
+              "node": "Validar email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extraer mensaje de usuario - nombre & apellido": {
+        "main": [
+          [
+            {
+              "node": "Validar nombre",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extraer mensaje de usuario - teléfono": {
+        "main": [
+          [
+            {
+              "node": "Validar teléfono y normalizar teléfono",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Datos para crear contacto - Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contacto en Chatwoot - Datos básicos",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Teléfono válido?": {
+        "main": [
+          [
+            {
+              "node": "Upsert contexto Guardar identidad (teléfono) – Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Construir mensaje # inválido -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validar teléfono y normalizar teléfono": {
+        "main": [
+          [
+            {
+              "node": "¿Teléfono válido?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cargar contexto para sincronizar contacto - Supabase": {
+        "main": [
+          [
+            {
+              "node": "Datos para crear contacto - Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje de identidad -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Preguntar por Nombre y Apellido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje para pedir nombre y apellido -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Preguntar nuevamente por Nombre y Apellido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje del # -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Responder y seguir con Teléfono",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje email inválido -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Preguntar Email válido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje de datos listos -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Responder y preguntar en que le puedo ayudar",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje # inválido -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Solicitar teléfono válido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Responder y preguntar en que le puedo ayudar": {
+        "main": [
+          [
+            {
+              "node": "Cargar contexto para sincronizar contacto - Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert contexto Guardar identidad (teléfono) – Supabase": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje de datos listos -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje de email -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Responder y seguir con Email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contacto en Chatwoot - Datos básicos": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "Kevin Quiroz",
+    "name": "Version 9ab30587",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "9ab30587-c606-4bf3-8a4b-1439fb5adeb2",
+  "connections": {
+    "Normalizar payload Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Obtener contexto - Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar nombre": {
+      "main": [
+        [
+          {
+            "node": "¿Nombre válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identidad": {
+      "main": [
+        [
+          {
+            "node": "¿Mensaje usuario?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener contexto - Supabase": {
+      "main": [
+        [
+          {
+            "node": "Etapa de Identidad - Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Etapa de Identidad - Router": {
+      "main": [
+        [
+          {
+            "node": "Upsert contexto - iniciar identidad",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extraer mensaje de usuario - nombre & apellido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extraer mensaje de usuario - email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extraer mensaje de usuario - teléfono",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Muere aquí",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Muere aquí",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert contexto - iniciar identidad": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje de identidad -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Mensaje usuario?": {
+      "main": [
+        [
+          {
+            "node": "Normalizar payload Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "¿Nombre válido?": {
+      "main": [
+        [
+          {
+            "node": "Upsert contexto - Guardar Nombre y Apellido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Construir mensaje para pedir nombre y apellido -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar email": {
+      "main": [
+        [
+          {
+            "node": "¿Email válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert contexto - Guardar Nombre y Apellido": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje de email -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Email válido?": {
+      "main": [
+        [
+          {
+            "node": "Upsert contexto - Guardar Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Construir mensaje email inválido -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert contexto - Guardar Email": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje del # -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer mensaje de usuario - email": {
+      "main": [
+        [
+          {
+            "node": "Validar email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer mensaje de usuario - nombre & apellido": {
+      "main": [
+        [
+          {
+            "node": "Validar nombre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer mensaje de usuario - teléfono": {
+      "main": [
+        [
+          {
+            "node": "Validar teléfono y normalizar teléfono",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos para crear contacto - Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contacto en Chatwoot - Datos básicos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Teléfono válido?": {
+      "main": [
+        [
+          {
+            "node": "Upsert contexto Guardar identidad (teléfono) – Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Construir mensaje # inválido -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar teléfono y normalizar teléfono": {
+      "main": [
+        [
+          {
+            "node": "¿Teléfono válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar contexto para sincronizar contacto - Supabase": {
+      "main": [
+        [
+          {
+            "node": "Datos para crear contacto - Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje de identidad -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Preguntar por Nombre y Apellido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje para pedir nombre y apellido -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Preguntar nuevamente por Nombre y Apellido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje del # -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Responder y seguir con Teléfono",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje email inválido -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Preguntar Email válido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje de datos listos -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Responder y preguntar en que le puedo ayudar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje # inválido -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Solicitar teléfono válido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder y preguntar en que le puedo ayudar": {
+      "main": [
+        [
+          {
+            "node": "Cargar contexto para sincronizar contacto - Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert contexto Guardar identidad (teléfono) – Supabase": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje de datos listos -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje de email -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Responder y seguir con Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contacto en Chatwoot - Datos básicos": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "createdAt": "2026-01-07T20:52:05.447Z",
+  "id": "D8atTqTVY2B6CLC6",
+  "isArchived": false,
+  "meta": null,
+  "name": "Obtención del cliente - V0",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68f14a79-9b5c-4350-9c95-d414d1be09d3",
+              "name": "conversation_id",
+              "value": "={{ $json.body.conversation.id }}",
+              "type": "number"
+            },
+            {
+              "id": "f5578c6a-db13-4827-b7b0-2c8f197fdbf4",
+              "name": "contact_id",
+              "value": "={{ $json.body.conversation.contact_inbox.contact_id }}",
+              "type": "string"
+            },
+            {
+              "id": "86f31177-9e03-4240-9ec6-652cf55b2133",
+              "name": "inbox_id",
+              "value": "={{ $json.body.conversation.inbox_id }}",
+              "type": "string"
+            },
+            {
+              "id": "12ff3824-5374-4563-9360-bc95c0a76b53",
+              "name": "sender_type",
+              "value": "={{ $json.body.conversation.messages[0].sender_type }}",
+              "type": "string"
+            },
+            {
+              "id": "fe2cbea4-b982-4f13-8cd6-e0731b3b8388",
+              "name": "last_user_message",
+              "value": "={{ $json.body.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        384
+      ],
+      "id": "0cdcebce-36f1-4fbf-8f01-13dbd749a7c3",
+      "name": "Normalizar payload Chatwoot"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = ($json.last_user_message || '').trim();\n\nif (!raw) {\n  return [{ invalid: true, reason: 'empty' }];\n}\n\n// Normalizar espacios\nconst text = raw.replace(/\\s+/g, ' ');\n\n// Rechazar frases largas\nif (text.length > 60) {\n  return [{ invalid: true, reason: 'too_long' }];\n}\n\n// Solo letras y espacios (incluye acentos)\nconst nameRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?: [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+){1,3}$/;\n\nif (!nameRegex.test(text)) {\n  return [{ invalid: true, reason: 'invalid_format' }];\n}\n\n// Separar palabras\nconst parts = text.split(' ');\n\n// Rechazar palabras demasiado cortas (ej: “a b”)\nif (parts.some(p => p.length < 2)) {\n  return [{ invalid: true, reason: 'too_short_word' }];\n}\n\n// 👉 Capitalizar correctamente cada palabra\nconst capitalizedName = parts\n  .map(word =>\n    word.charAt(0).toUpperCase() +\n    word.slice(1).toLowerCase()\n  )\n  .join(' ');\n\nreturn [{\n  invalid: false,\n  name: capitalizedName\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        128
+      ],
+      "id": "34ee0fa5-ad29-4ced-842e-aeb2397eb33c",
+      "name": "Validar nombre"
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = ($json.last_user_message || '').trim();\nconst valid = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);\n\nreturn [{\n  email,\n  valid\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1968,
+        464
+      ],
+      "id": "f95e9f7e-e5c0-4196-8b97-02008e9f7a1e",
+      "name": "Validar email"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        1088
+      ],
+      "id": "1deaec53-81fa-4938-9e8e-a7bc5fce068d",
+      "name": "Muere aquí"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatwoot-identity",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        304,
+        400
+      ],
+      "id": "aa40598f-9773-446a-a623-f5619c8c60c3",
+      "name": "Identidad",
+      "webhookId": "033895a8-a7e2-40fd-9175-674ec14c891e"
+    },
+    {
+      "parameters": {
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "conversation_id",
+              "value": "=eq.{{ $json.conversation_id }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1072,
+        384
+      ],
+      "id": "b92c2aa2-bccf-4281-9a13-c5aa7596cab3",
+      "name": "Obtener contexto - Supabase",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        },
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ !$json.stage || $json.stage === 'new' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "a48b273d-afd0-4f53-807f-ab8e5689622a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Nuevo usuario"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "cbf1c09d-3c00-46ed-b231-52da1e9864f6",
+                    "leftValue": "={{ $json.stage === 'awaiting_name' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Pedir nombre"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "749aabb4-6ffa-48c5-8d00-2159b3993760",
+                    "leftValue": "={{ $json.stage === 'awaiting_email' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Pedir email"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "21ab4de2-3439-4358-8b55-04cf5fd623df",
+                    "leftValue": "={{ $json.stage === 'awaiting_phone' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Pedir teléfono"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a3551b7a-ad49-4579-8f35-37857ee94de2",
+                    "leftValue": "={{ $json.stage === 'identity_captured' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Identidad completa"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fbec96c6-aca3-4cda-b05d-93f3a4666471",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Default"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        320
+      ],
+      "id": "cf506ed6-95a5-4e88-bc50-636ede57bedf",
+      "name": "Etapa de Identidad - Router"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"awaiting_name\",\n  \"updated_at\": \"{{ $now }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1984,
+        -128
+      ],
+      "id": "f6867622-4e37-4ad4-9375-7ea2ea02f0cf",
+      "name": "Upsert contexto - iniciar identidad",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9cb3e69c-ae8e-47d8-8d30-67a39b81cc6a",
+              "leftValue": "={{ $('Identidad').item.json.body.message_type === 'incoming' && $('Identidad').item.json.body.conversation.messages[0].sender_type === 'Contact'}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        400
+      ],
+      "id": "1274cf2f-66b8-42e7-9b49-d764662ad9f1",
+      "name": "¿Mensaje usuario?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5cb05276-b97c-45e4-9017-39548a44e98f",
+              "leftValue": "={{ $json.invalid === false }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2176,
+        128
+      ],
+      "id": "a024d0c8-0b79-49c8-b7e8-5c48d4f953cf",
+      "name": "¿Nombre válido?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5cb05276-b97c-45e4-9017-39548a44e98f",
+              "leftValue": "={{ $json.valid === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2192,
+        464
+      ],
+      "id": "81870a9a-4138-4e0c-ad6b-f62f734beff2",
+      "name": "¿Email válido?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"email\": {{ JSON.stringify($json.email) }},\n  \"stage\": \"awaiting_phone\",\n  \"updated_at\": \"{{ $now }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2480,
+        400
+      ],
+      "id": "284bccc4-c89e-4d0d-ad27-9c76fd10258f",
+      "name": "Upsert contexto - Guardar Email",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"name\": {{ JSON.stringify($json.name) }},\n  \"stage\": \"awaiting_email\",\n  \"updated_at\": \"{{ $now }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2496,
+        -64
+      ],
+      "id": "fe07c0ae-d302-4566-819c-1c9b77997c14",
+      "name": "Upsert contexto - Guardar Nombre y Apellido",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90226c51-3496-448d-9698-5310e8cbceea",
+              "name": "last_user_message",
+              "value": "={{ $('Identidad').item.json.body.conversation.messages[0].content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1728,
+        464
+      ],
+      "id": "6a679612-a042-458c-a04f-cc5a4f953b5a",
+      "name": "Extraer mensaje de usuario - email"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90226c51-3496-448d-9698-5310e8cbceea",
+              "name": "last_user_message",
+              "value": "={{ $('Identidad').item.json.body.conversation.messages[0].content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        128
+      ],
+      "id": "8c73bedc-6751-468c-929a-4bcbb23b72b7",
+      "name": "Extraer mensaje de usuario - nombre & apellido"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90226c51-3496-448d-9698-5310e8cbceea",
+              "name": "last_user_message",
+              "value": "={{ $('Identidad').item.json.body.conversation.messages[0].content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1744,
+        800
+      ],
+      "id": "bcc6a7a8-4738-4354-ab7b-1432878fec49",
+      "name": "Extraer mensaje de usuario - teléfono"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e73ee378-b686-4c2c-b5eb-2bb6f5f82ffd",
+              "name": "contact_id",
+              "value": "={{ $('Identidad').item.json.body.conversation.contact_inbox.contact_id }}",
+              "type": "number"
+            },
+            {
+              "id": "fca64a4c-d98e-4f52-b4a7-a24fe468327f",
+              "name": "contact_inbox_id",
+              "value": "={{ $('Identidad').item.json.body.conversation.contact_inbox.id }}",
+              "type": "number"
+            },
+            {
+              "id": "d1d277af-ee92-44e5-a118-64836c898150",
+              "name": "name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "7f72918f-e600-4518-8638-021a7fc22ac0",
+              "name": "email",
+              "value": "={{ ($json.email) }}",
+              "type": "string"
+            },
+            {
+              "id": "23f09897-abe8-4585-a4e7-0c4d6eedc8c7",
+              "name": "phone",
+              "value": "=+{{ ($json.phone) }}",
+              "type": "string"
+            },
+            {
+              "id": "5855caac-314d-477d-9954-8e71caac3f39",
+              "name": "inbox_id",
+              "value": "={{ $('Identidad').item.json.body.conversation.contact_inbox.inbox_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3456,
+        896
+      ],
+      "id": "b5a7cfd0-562c-4ab5-aa37-1ccf83a3fbf4",
+      "name": "Datos para crear contacto - Chatwoot"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c5f1f350-1e70-4f31-bdaa-f434989ac5ca",
+              "leftValue": "={{ $json.valid === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2224,
+        1056
+      ],
+      "id": "e4c5f639-5bff-4016-8c71-d489ad1f7e85",
+      "name": "¿Teléfono válido?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = ($json.last_user_message || '').trim();\n\n// 1️⃣ Limpiar el input: solo dígitos\nconst digits = raw.replace(/\\D/g, '');\n\n// 2️⃣ Normalizar a E.164 (MX + US)\nlet phoneE164 = null;\n\n// 🇲🇽 México\nif (digits.length === 10) {\n  phoneE164 = `+52${digits}`;\n}\nelse if (digits.length === 12 && digits.startsWith('52')) {\n  phoneE164 = `+${digits}`;\n}\nelse if (digits.length === 13 && digits.startsWith('521')) {\n  phoneE164 = `+${digits}`;\n}\n\n// 🇺🇸 Estados Unidos\nelse if (digits.length === 11 && digits.startsWith('1')) {\n  phoneE164 = `+${digits}`;\n}\nelse if (digits.length === 10) {\n  phoneE164 = `+1${digits}`;\n}\n\n// 3️⃣ Resultado determinista\nconst valid = phoneE164 !== null;\n\nreturn [{\n  valid,\n  phone_raw: raw,\n  phone_e164: phoneE164\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1952,
+        800
+      ],
+      "id": "b0e8b247-d0b3-4ccc-8df2-b362c1cbd960",
+      "name": "Validar teléfono y normalizar teléfono"
+    },
+    {
+      "parameters": {
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "conversation_id",
+              "value": "=eq.{{ $json.conversation_id }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3232,
+        896
+      ],
+      "id": "d79ea0ae-6199-443f-8184-738f61a88a79",
+      "name": "Cargar contexto para sincronizar contacto - Supabase",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        },
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "¡Hola! 😊\nPara comenzar, ¿me puedes compartir tu **nombre y apellido**, por favor?",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2176,
+        -128
+      ],
+      "id": "b5b073d0-58e7-4b6b-bd7f-63dba68bbf00",
+      "name": "Construir mensaje de identidad -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "Parece que ese no es un nombre válido.\n¿Podrías volver a intentarlo? ☺️",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2496,
+        160
+      ],
+      "id": "8d22674b-da20-4249-9421-2f915fd09e78",
+      "name": "Construir mensaje para pedir nombre y apellido -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "Perfecto 🙌\n¿Y tú número de teléfono?",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2784,
+        400
+      ],
+      "id": "84c30a27-a0a9-4bdb-ab69-22bd780051a5",
+      "name": "Construir mensaje del # -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "Parece que el correo no es válido 😅\n¿Podrías revisarlo?",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2480,
+        624
+      ],
+      "id": "f2931a3b-7138-4434-bffd-2947f33bd02f",
+      "name": "Construir mensaje email inválido -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "Gracias 😊\nYa tengo tus datos. ¿En qué te puedo ayudar hoy?",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2736,
+        896
+      ],
+      "id": "650e66c5-00d6-41cb-a10a-944f88260ffc",
+      "name": "Construir mensaje de datos listos -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "Ese número no parece válido 😅\n¿Podrías enviarlo con 10 dígitos o con código de país?\nEjemplo: +521234567890",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2480,
+        1152
+      ],
+      "id": "411d0605-c894-4e6c-98f9-2e7eebfde6eb",
+      "name": "Construir mensaje # inválido -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2496,
+        -288
+      ],
+      "id": "9c770dad-1ba6-433e-ade0-883d8eeb1e3b",
+      "name": "Preguntar por Nombre y Apellido",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2752,
+        160
+      ],
+      "id": "14b46bb5-46d9-4708-b8e4-f4c1c766dd83",
+      "name": "Preguntar nuevamente por Nombre y Apellido",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3024,
+        400
+      ],
+      "id": "e0716f54-8b5c-4910-9f50-a65c251ab4bc",
+      "name": "Responder y seguir con Teléfono",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2784,
+        624
+      ],
+      "id": "1ac57e7a-1939-4bc6-a67c-eed581e95344",
+      "name": "Preguntar Email válido",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2976,
+        896
+      ],
+      "id": "208b623c-84dd-48a4-b518-e0a3ac8d0154",
+      "name": "Responder y preguntar en que le puedo ayudar",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2736,
+        1152
+      ],
+      "id": "53461b3b-b290-4660-b5df-c340ad232422",
+      "name": "Solicitar teléfono válido",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"phone\": {{ JSON.stringify($json.phone_e164) }},\n  \"stage\": \"identity_captured\",\n  \"updated_at\": \"{{ $now }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2480,
+        896
+      ],
+      "id": "043bf84f-27bc-4842-8d49-438750155e71",
+      "name": "Upsert contexto Guardar identidad (teléfono) – Supabase",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3008,
+        -64
+      ],
+      "id": "9d5f9cf1-c0bf-4c3b-8f78-6fbeca30775e",
+      "name": "Responder y seguir con Email",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "=Gracias {{ $('¿Nombre válido?').item.json.name.split(' ')[0] }} 😊\n¿Cuál es tu correo electrónico? ",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2752,
+        -64
+      ],
+      "id": "1c656409-ae9b-4bb3-987f-3e106f5f4ce4",
+      "name": "Construir mensaje de email -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/contacts/{{ $json.contact_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": {{ JSON.stringify($json.name) }},\n  \"email\": {{ JSON.stringify($json.email) }},\n  \"phone_number\": {{ JSON.stringify($json.phone) }},\n  \"custom_attributes\": {\n    \"identity_completed\": true,\n    \"captured_by_bot\": true,\n    \"identity_completed_at\": \"{{ $now }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3712,
+        896
+      ],
+      "id": "9f84520e-fd9f-4826-a119-039e4b9d7a92",
+      "name": "Actualizar contacto en Chatwoot - Datos básicos",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-07T20:52:05.449Z",
+      "createdAt": "2026-01-07T20:52:05.449Z",
+      "role": "workflow:owner",
+      "workflowId": "D8atTqTVY2B6CLC6",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-09T21:43:33.261Z",
+      "createdAt": "2026-01-09T21:43:33.261Z",
+      "id": "pAZsmvfJBKj03BNY",
+      "name": "v0"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-15T18:56:31.072Z",
+  "versionId": "9ab30587-c606-4bf3-8a4b-1439fb5adeb2"
+}
