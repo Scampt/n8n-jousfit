@@ -1,0 +1,601 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-09T22:29:42.000Z",
+    "createdAt": "2026-01-09T22:29:41.462Z",
+    "versionId": "3d5cf5be-f382-406f-a2e8-9b4ae0da17a9",
+    "workflowId": "tKCin4283nfLoLti",
+    "nodes": [
+      {
+        "parameters": {
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBearerAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "conversation_id",
+                "value": "=eq.{{$json.conversation_id}}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Accept",
+                "value": "application/json"
+              },
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1696,
+          -304
+        ],
+        "id": "4b586ebe-faf5-4e03-b40e-e67a7b5ad164",
+        "name": "Obtener contexto desde Supabase",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "Y7VRgC9ZABE9kFDw",
+            "name": "Header Auth account - Supabase jousfit.com"
+          },
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBearerAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              },
+              {
+                "name": "apikey",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{$json.conversation_id}},\n  \"stage\": \"awaiting_order_code\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -1216,
+          -320
+        ],
+        "id": "9b69823b-dd95-410a-8550-e29be39bcd52",
+        "name": "Actualizar contexto - Esperando Pedido",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Clasificar intención').item.json.conversation_id }}/messages",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "api_access_token",
+                "value": "VYwD8NvEyYNoCTbWaqaRYC3L"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": \"Con gusto te ayudo 😊\\n\\nPara revisar el estado de tu pedido, ¿podrías compartirme tu **número de pedido**?\\n\\nNormalmente lo encuentras en el correo de confirmación y suele verse así: #123456\",\n  \"message_type\": \"outgoing\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -992,
+          -320
+        ],
+        "id": "6d68ec9d-cafc-4dfc-afa5-f6283404dfd0",
+        "name": "Preguntar por Número de Orden - Chatwoot Bot",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{$json.conversation_id}}/labels",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "api_access_token",
+                "value": "VYwD8NvEyYNoCTbWaqaRYC3L"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"labels\": [\"intent_estado_pedido\"]\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -768,
+          -320
+        ],
+        "id": "8de78ca4-6458-4b9e-8635-691f238a5e64",
+        "name": "Agregar etiqueta - intent_estado_pedido"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -1504,
+          -112
+        ],
+        "id": "b6a28eab-faf0-496d-ae3c-b847ab1e7dd2",
+        "name": "Entrada desde V7"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "3c840418-3e08-424a-90eb-669d2d091e00",
+                "leftValue": "={{    $json.stage === 'identity_captured'    || $json.stage === 'shopify_enriched' }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -1488,
+          -304
+        ],
+        "id": "45e6ed63-90d1-470f-a0e5-38df85f19f83",
+        "name": "¿Validar stage permitido?"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          -1200,
+          -80
+        ],
+        "id": "2eb0dc10-107f-40fe-8166-9e41e24b2639",
+        "name": "Muere aquí"
+      }
+    ],
+    "connections": {
+      "Obtener contexto desde Supabase": {
+        "main": [
+          [
+            {
+              "node": "¿Validar stage permitido?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contexto - Esperando Pedido": {
+        "main": [
+          [
+            {
+              "node": "Preguntar por Número de Orden - Chatwoot Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Preguntar por Número de Orden - Chatwoot Bot": {
+        "main": [
+          [
+            {
+              "node": "Agregar etiqueta - intent_estado_pedido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Entrada desde V7": {
+        "main": [
+          [
+            {
+              "node": "Obtener contexto desde Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Validar stage permitido?": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contexto - Esperando Pedido",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Muere aquí",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Kevin Quiroz",
+    "name": "Version 3d5cf5be",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "3d5cf5be-f382-406f-a2e8-9b4ae0da17a9",
+  "connections": {
+    "Obtener contexto desde Supabase": {
+      "main": [
+        [
+          {
+            "node": "¿Validar stage permitido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto - Esperando Pedido": {
+      "main": [
+        [
+          {
+            "node": "Preguntar por Número de Orden - Chatwoot Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preguntar por Número de Orden - Chatwoot Bot": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta - intent_estado_pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada desde V7": {
+      "main": [
+        [
+          {
+            "node": "Obtener contexto desde Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Validar stage permitido?": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto - Esperando Pedido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Muere aquí",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-17T04:56:59.851Z",
+  "id": "tKCin4283nfLoLti",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Estado del Pedido - Chatwoot Widget Test v1",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "conversation_id",
+              "value": "=eq.{{$json.conversation_id}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1696,
+        -304
+      ],
+      "id": "4b586ebe-faf5-4e03-b40e-e67a7b5ad164",
+      "name": "Obtener contexto desde Supabase",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        },
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{$json.conversation_id}},\n  \"stage\": \"awaiting_order_code\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1216,
+        -320
+      ],
+      "id": "9b69823b-dd95-410a-8550-e29be39bcd52",
+      "name": "Actualizar contexto - Esperando Pedido",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Clasificar intención').item.json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_access_token",
+              "value": "VYwD8NvEyYNoCTbWaqaRYC3L"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"Con gusto te ayudo 😊\\n\\nPara revisar el estado de tu pedido, ¿podrías compartirme tu **número de pedido**?\\n\\nNormalmente lo encuentras en el correo de confirmación y suele verse así: #123456\",\n  \"message_type\": \"outgoing\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -992,
+        -320
+      ],
+      "id": "6d68ec9d-cafc-4dfc-afa5-f6283404dfd0",
+      "name": "Preguntar por Número de Orden - Chatwoot Bot",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{$json.conversation_id}}/labels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_access_token",
+              "value": "VYwD8NvEyYNoCTbWaqaRYC3L"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"labels\": [\"intent_estado_pedido\"]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -768,
+        -320
+      ],
+      "id": "8de78ca4-6458-4b9e-8635-691f238a5e64",
+      "name": "Agregar etiqueta - intent_estado_pedido"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1504,
+        -112
+      ],
+      "id": "b6a28eab-faf0-496d-ae3c-b847ab1e7dd2",
+      "name": "Entrada desde V7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3c840418-3e08-424a-90eb-669d2d091e00",
+              "leftValue": "={{    $json.stage === 'identity_captured'    || $json.stage === 'shopify_enriched' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1488,
+        -304
+      ],
+      "id": "45e6ed63-90d1-470f-a0e5-38df85f19f83",
+      "name": "¿Validar stage permitido?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -1200,
+        -80
+      ],
+      "id": "2eb0dc10-107f-40fe-8166-9e41e24b2639",
+      "name": "Muere aquí"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "timezone": "America/Mexico_City",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-17T04:56:59.853Z",
+      "createdAt": "2025-12-17T04:56:59.853Z",
+      "role": "workflow:owner",
+      "workflowId": "tKCin4283nfLoLti",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-09T22:29:41.461Z",
+  "versionId": "3d5cf5be-f382-406f-a2e8-9b4ae0da17a9"
+}
