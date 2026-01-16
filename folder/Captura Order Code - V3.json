@@ -1,0 +1,1002 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-15T19:08:09.000Z",
+    "createdAt": "2026-01-15T19:08:08.209Z",
+    "versionId": "ae9c9015-1244-4398-85c2-bfb503d723eb",
+    "workflowId": "NOfJ1NoYRC2o4Gvs",
+    "nodes": [
+      {
+        "parameters": {
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "conversation_id",
+                "value": "=eq.{{$json.conversation_id}}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          144,
+          -112
+        ],
+        "id": "c38a6a94-ae5f-449b-8270-8302fae67573",
+        "name": "Obtener contexto desde Supabase",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "Y7VRgC9ZABE9kFDw",
+            "name": "Header Auth account - Supabase jousfit.com"
+          },
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "6ed9d4c8-9c5c-4768-b906-2841b21b77ca",
+                "leftValue": "={{ $json.stage }}",
+                "rightValue": "awaiting_order_code",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          336,
+          -112
+        ],
+        "id": "1d5025e9-8aae-4d67-b352-ebc4e224ff2f",
+        "name": "awaiting_order_code?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "2b62f020-6db8-43c7-bc7b-d12ad064fb92",
+                "leftValue": "={{ /#?\\d{6}/.test($json.last_customer_message || '') }}",
+                "rightValue": "={{ /#?\\d{4,10}/.test($json.last_customer_message || '') }}",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          592,
+          -128
+        ],
+        "id": "6dd4bc35-2bae-40b5-bd5f-df930276e668",
+        "name": "¿Mensaje contiene Order Code?"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "be410f54-6a8d-4e34-a92f-4ca452cee194",
+                "name": "order_code",
+                "value": "={{\n  Number(\n    ($('Obtener contexto desde Supabase').item.json.last_customer_message || '')\n      .match(/#?(\\d{6})/)?.[1]\n  ) || null\n}}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          848,
+          -144
+        ],
+        "id": "9fbc0acf-7e1a-4f84-92a9-032e03052964",
+        "name": "Extraer Order Code"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Obtener contexto desde Supabase').item.json.conversation_id }},\n  \"stage\": \"order_code_captured\",\n  \"order_code_status\": \"pending\",\n  \"last_customer_message\": \"{{ $('Obtener contexto desde Supabase').item.json.last_customer_message }}\",\n  \"order_code\": {{ $json.order_code }},\n  \"updated_at\": \"{{ $now }}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1072,
+          -144
+        ],
+        "id": "bea21e04-3044-49cf-b213-7a4904b59bb1",
+        "name": "Actualizar contexto – Order Code Capturado",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "aedd9e5d-1c56-4a7e-911b-6202fae0352e",
+                "name": "conversation_id",
+                "value": "={{ $('Obtener contexto desde Supabase').item.json.conversation_id }}",
+                "type": "number"
+              },
+              {
+                "id": "d5e73252-7fe8-43a0-8f94-05518c808bfa",
+                "name": "order_code",
+                "value": "={{ $('Extraer Order Code').item.json.order_code }}",
+                "type": "number"
+              },
+              {
+                "id": "fa5b67ac-eace-4adb-83f4-b57931bfcc37",
+                "name": "email",
+                "value": "={{ $('Obtener contexto desde Supabase').item.json.email }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1344,
+          -144
+        ],
+        "id": "a4f725ad-be1b-4c92-81e0-24d069d39200",
+        "name": "Preparar order_code"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          320,
+          80
+        ],
+        "id": "592c377e-b2d3-4da2-9081-32254656e880",
+        "name": "Entrada desde V1"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "CwBysgOk9XOu1q7N",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/CwBysgOk9XOu1q7N",
+            "cachedResultName": "Shopify Lookup - V2"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1568,
+          -144
+        ],
+        "id": "bcef16b8-0a1e-4bcd-988a-482825e27392",
+        "name": "Ejecutar V2 - Shopify Lookup"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"stage\": \"awaiting_order_code\",\n  \"last_customer_message\": \"{{ $('Obtener contexto desde Supabase').item.json.last_customer_message }}\",\n  \"updated_at\": \"{{ $now }}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1344,
+          64
+        ],
+        "id": "acd1e6cb-780f-4698-abe8-d403c39bf202",
+        "name": "Upsert contexto - Esperando número de pedido1",
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Obtener contexto desde Supabase').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1072,
+          64
+        ],
+        "id": "1556753a-b734-4efa-a582-77b0b36e599c",
+        "name": "Preguntar por el # de pedido al invitado",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "🤔 Rayos!!! Al parecer no me proporcionaste ningún # de pedido\nIntenta nuevamente\n¿Podrías compartirme tu número de pedido?\nSuele verse como #123456 en tu email",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          832,
+          64
+        ],
+        "id": "b67138d2-f895-4146-a6e1-f3938cdfbe32",
+        "name": "Construir mensaje para pedir nuevamente # pedido -  Chatwoot"
+      }
+    ],
+    "connections": {
+      "Obtener contexto desde Supabase": {
+        "main": [
+          [
+            {
+              "node": "awaiting_order_code?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "awaiting_order_code?": {
+        "main": [
+          [
+            {
+              "node": "¿Mensaje contiene Order Code?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Mensaje contiene Order Code?": {
+        "main": [
+          [
+            {
+              "node": "Extraer Order Code",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Construir mensaje para pedir nuevamente # pedido -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extraer Order Code": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contexto – Order Code Capturado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contexto – Order Code Capturado": {
+        "main": [
+          [
+            {
+              "node": "Preparar order_code",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Preparar order_code": {
+        "main": [
+          [
+            {
+              "node": "Ejecutar V2 - Shopify Lookup",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Entrada desde V1": {
+        "main": [
+          [
+            {
+              "node": "Obtener contexto desde Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Upsert contexto - Esperando número de pedido1": {
+        "main": [
+          []
+        ]
+      },
+      "Preguntar por el # de pedido al invitado": {
+        "main": [
+          [
+            {
+              "node": "Upsert contexto - Esperando número de pedido1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje para pedir nuevamente # pedido -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Preguntar por el # de pedido al invitado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Kevin Quiroz",
+    "name": "Version ae9c9015",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "ae9c9015-1244-4398-85c2-bfb503d723eb",
+  "connections": {
+    "Obtener contexto desde Supabase": {
+      "main": [
+        [
+          {
+            "node": "awaiting_order_code?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "awaiting_order_code?": {
+      "main": [
+        [
+          {
+            "node": "¿Mensaje contiene Order Code?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Mensaje contiene Order Code?": {
+      "main": [
+        [
+          {
+            "node": "Extraer Order Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Construir mensaje para pedir nuevamente # pedido -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer Order Code": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto – Order Code Capturado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto – Order Code Capturado": {
+      "main": [
+        [
+          {
+            "node": "Preparar order_code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar order_code": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar V2 - Shopify Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada desde V1": {
+      "main": [
+        [
+          {
+            "node": "Obtener contexto desde Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert contexto - Esperando número de pedido1": {
+      "main": [
+        []
+      ]
+    },
+    "Preguntar por el # de pedido al invitado": {
+      "main": [
+        [
+          {
+            "node": "Upsert contexto - Esperando número de pedido1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje para pedir nuevamente # pedido -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Preguntar por el # de pedido al invitado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-18T01:13:10.365Z",
+  "id": "NOfJ1NoYRC2o4Gvs",
+  "isArchived": false,
+  "meta": null,
+  "name": "Captura Order Code - V3",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "conversation_id",
+              "value": "=eq.{{$json.conversation_id}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        144,
+        -112
+      ],
+      "id": "c38a6a94-ae5f-449b-8270-8302fae67573",
+      "name": "Obtener contexto desde Supabase",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        },
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6ed9d4c8-9c5c-4768-b906-2841b21b77ca",
+              "leftValue": "={{ $json.stage }}",
+              "rightValue": "awaiting_order_code",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        -112
+      ],
+      "id": "1d5025e9-8aae-4d67-b352-ebc4e224ff2f",
+      "name": "awaiting_order_code?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2b62f020-6db8-43c7-bc7b-d12ad064fb92",
+              "leftValue": "={{ /#?\\d{6}/.test($json.last_customer_message || '') }}",
+              "rightValue": "={{ /#?\\d{4,10}/.test($json.last_customer_message || '') }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        -128
+      ],
+      "id": "6dd4bc35-2bae-40b5-bd5f-df930276e668",
+      "name": "¿Mensaje contiene Order Code?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "be410f54-6a8d-4e34-a92f-4ca452cee194",
+              "name": "order_code",
+              "value": "={{\n  Number(\n    ($('Obtener contexto desde Supabase').item.json.last_customer_message || '')\n      .match(/#?(\\d{6})/)?.[1]\n  ) || null\n}}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        -144
+      ],
+      "id": "9fbc0acf-7e1a-4f84-92a9-032e03052964",
+      "name": "Extraer Order Code"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Obtener contexto desde Supabase').item.json.conversation_id }},\n  \"stage\": \"order_code_captured\",\n  \"order_code_status\": \"pending\",\n  \"last_customer_message\": \"{{ $('Obtener contexto desde Supabase').item.json.last_customer_message }}\",\n  \"order_code\": {{ $json.order_code }},\n  \"updated_at\": \"{{ $now }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1072,
+        -144
+      ],
+      "id": "bea21e04-3044-49cf-b213-7a4904b59bb1",
+      "name": "Actualizar contexto – Order Code Capturado",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aedd9e5d-1c56-4a7e-911b-6202fae0352e",
+              "name": "conversation_id",
+              "value": "={{ $('Obtener contexto desde Supabase').item.json.conversation_id }}",
+              "type": "number"
+            },
+            {
+              "id": "d5e73252-7fe8-43a0-8f94-05518c808bfa",
+              "name": "order_code",
+              "value": "={{ $('Extraer Order Code').item.json.order_code }}",
+              "type": "number"
+            },
+            {
+              "id": "fa5b67ac-eace-4adb-83f4-b57931bfcc37",
+              "name": "email",
+              "value": "={{ $('Obtener contexto desde Supabase').item.json.email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        -144
+      ],
+      "id": "a4f725ad-be1b-4c92-81e0-24d069d39200",
+      "name": "Preparar order_code"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        80
+      ],
+      "id": "592c377e-b2d3-4da2-9081-32254656e880",
+      "name": "Entrada desde V1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CwBysgOk9XOu1q7N",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/CwBysgOk9XOu1q7N",
+          "cachedResultName": "Shopify Lookup - V2"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1568,
+        -144
+      ],
+      "id": "bcef16b8-0a1e-4bcd-988a-482825e27392",
+      "name": "Ejecutar V2 - Shopify Lookup"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"stage\": \"awaiting_order_code\",\n  \"last_customer_message\": \"{{ $('Obtener contexto desde Supabase').item.json.last_customer_message }}\",\n  \"updated_at\": \"{{ $now }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1344,
+        64
+      ],
+      "id": "acd1e6cb-780f-4698-abe8-d403c39bf202",
+      "name": "Upsert contexto - Esperando número de pedido1",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Obtener contexto desde Supabase').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1072,
+        64
+      ],
+      "id": "1556753a-b734-4efa-a582-77b0b36e599c",
+      "name": "Preguntar por el # de pedido al invitado",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "🤔 Rayos!!! Al parecer no me proporcionaste ningún # de pedido\nIntenta nuevamente\n¿Podrías compartirme tu número de pedido?\nSuele verse como #123456 en tu email",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        64
+      ],
+      "id": "b67138d2-f895-4146-a6e1-f3938cdfbe32",
+      "name": "Construir mensaje para pedir nuevamente # pedido -  Chatwoot"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-18T01:13:10.367Z",
+      "createdAt": "2025-12-18T01:13:10.367Z",
+      "role": "workflow:owner",
+      "workflowId": "NOfJ1NoYRC2o4Gvs",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-09T21:58:23.990Z",
+      "createdAt": "2026-01-09T21:58:23.990Z",
+      "id": "cFOHzBuSivDc5Gus",
+      "name": "v3"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-15T19:08:08.208Z",
+  "versionId": "ae9c9015-1244-4398-85c2-bfb503d723eb"
+}
