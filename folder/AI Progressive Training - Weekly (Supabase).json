@@ -1,0 +1,338 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Programación Semanal": {
+      "main": [
+        [
+          {
+            "node": "Obtener Ejemplos Nuevos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Ejemplos Nuevos": {
+      "main": [
+        [
+          {
+            "node": "Filtrar Ejemplos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar Ejemplos": {
+      "main": [
+        [
+          {
+            "node": "Calcular Métricas Globales",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Construir Dataset Semanal",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Calcular Métricas por Intención",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Métricas Globales": {
+      "main": [
+        [
+          {
+            "node": "Insertar Métricas Globales (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Métricas por Intención": {
+      "main": [
+        [
+          {
+            "node": "Insertar Métricas por Intención (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir Dataset Semanal": {
+      "main": [
+        [
+          {
+            "node": "Insertar Dataset Semanal (Supabase)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-17T03:26:26.639Z",
+  "id": "vYyKgDT9CO26qiku",
+  "isArchived": false,
+  "meta": null,
+  "name": "AI Progressive Training - Weekly (Supabase)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 7,
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -848,
+        160
+      ],
+      "id": "3c211254-79d6-4d9d-bc91-78081ba8edba",
+      "name": "Programación Semanal"
+    },
+    {
+      "parameters": {
+        "url": "=https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/training_examples?select=*&order=created_at.desc.nullslast",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -624,
+        160
+      ],
+      "id": "2aabf8d2-8b42-42d6-a0fc-a266189fde33",
+      "name": "Obtener Ejemplos Nuevos"
+    },
+    {
+      "parameters": {
+        "jsCode": "const oneWeekAgo = new Date();\noneWeekAgo.setDate(oneWeekAgo.getDate() - 7);\n\nreturn items\n  .map(item => item.json)\n  .filter(e => new Date(e.created_at) >= oneWeekAgo && e.confidence >= 0.8)\n  .map(e => ({ json: e }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        160
+      ],
+      "id": "acd355af-c8eb-4600-a137-a8973437ea95",
+      "name": "Filtrar Ejemplos"
+    },
+    {
+      "parameters": {
+        "jsCode": "const examples = items.map(i => i.json);\n\nif (examples.length === 0) {\n  return [{\n    json: {\n      message: \"No new examples this week.\",\n      total_examples: 0,\n      avg_confidence: 0,\n      autosend_rate: 0,\n      timestamp: new Date().toISOString()\n    }\n  }];\n}\n \nconst avgConfidence =\n  examples.reduce((sum, e) => sum + (e.confidence || 0), 0) / examples.length;\n\nconst autosendRate =\n  examples.filter(e => e.autosend === true).length / examples.length;\n\nreturn [{\n  json: {\n    total_examples: examples.length,\n    avg_confidence: avgConfidence,\n    autosend_rate: autosendRate,\n    timestamp: new Date().toISOString(),\n    examples: examples\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -32
+      ],
+      "id": "abd77de1-2ed9-4b3f-99d1-e8a22311da20",
+      "name": "Calcular Métricas Globales"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/ai_training_metrics",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\n    \"total_examples\": {{ $json.total_examples }},\n    \"avg_confidence\": {{ $json.avg_confidence }},\n    \"autosend_rate\": {{ $json.autosend_rate }},\n    \"timestamp\": \"{{ $json.timestamp }}\"\n  }\n]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        48,
+        -32
+      ],
+      "id": "7644d4f2-aa23-4d55-b5ad-d13e115c3397",
+      "name": "Insertar Métricas Globales (Supabase)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const examples = items.map(i => i.json);\n\nif (examples.length === 0) {\n  return [{\n    json: {\n      generated_at: new Date().toISOString(),\n      stats: []\n    }\n  }];\n}\n\nconst groups = {};\n\nfor (const e of examples) {\n  const intent = e.detected_intent || \"unknown\";\n\n  if (!groups[intent]) {\n    groups[intent] = {\n      total: 0,\n      confidenceSum: 0,\n      correct: 0,\n      incorrect: 0\n    };\n  }\n\n  groups[intent].total += 1;\n  groups[intent].confidenceSum += e.confidence || 0;\n\n  if (e.is_correct === true) groups[intent].correct += 1;\n  else if (e.is_correct === false) groups[intent].incorrect += 1;\n}\n\nconst statsArray = Object.keys(groups).map(intent => {\n  const g = groups[intent];\n  const precision = g.total === 0 ? 0 : (g.correct / g.total) * 100;\n\n  return {\n    intent,\n    total_examples: g.total,\n    avg_confidence: g.confidenceSum / g.total,\n    correct_count: g.correct,\n    incorrect_count: g.incorrect,\n    precision_pct: precision,\n    generated_at: new Date().toISOString()\n  };\n});\n\nreturn [{\n  json: {\n    stats: statsArray\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        160
+      ],
+      "id": "dbda8d14-12aa-48cc-b942-c771f0eaecc3",
+      "name": "Calcular Métricas por Intención"
+    },
+    {
+      "parameters": {
+        "jsCode": "const examples = items.map(i => i.json);\n\nconst windowDays = 7;\nconst minConfidence = 0.8;\n\nreturn [{\n  json: {\n    generated_at: new Date().toISOString(),\n    window_days: windowDays,\n    min_confidence: minConfidence,\n    total_examples: examples.length,\n    data: JSON.stringify(examples)\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        352
+      ],
+      "id": "f2974f35-031c-41e5-91c7-055a75a51133",
+      "name": "Construir Dataset Semanal"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/training_intent_stats",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.stats }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        48,
+        160
+      ],
+      "id": "61ca57d9-80db-4c7b-a47c-47dc0301c47d",
+      "name": "Insertar Métricas por Intención (Supabase)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/training_datasets",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\n    \"generated_at\": \"{{ $json.generated_at }}\",\n    \"window_days\": {{ $json.window_days }},\n    \"min_confidence\": {{ $json.min_confidence }},\n    \"total_examples\": {{ $json.total_examples }},\n    \"data\": {{ $json.data }}\n  }\n]\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        48,
+        352
+      ],
+      "id": "552dc5b3-6e4d-4174-8f92-8bfd1c276f19",
+      "name": "Insertar Dataset Semanal (Supabase)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-17T03:26:26.642Z",
+      "createdAt": "2025-12-17T03:26:26.642Z",
+      "role": "workflow:owner",
+      "workflowId": "vYyKgDT9CO26qiku",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-17T03:26:44.080Z",
+  "versionId": "5e18ecdc-5f2a-4909-b5af-d3720e5a8f3d"
+}
