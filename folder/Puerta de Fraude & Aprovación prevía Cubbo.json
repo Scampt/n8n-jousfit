@@ -1,0 +1,747 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Obtener ordenes": {
+      "main": [
+        [
+          {
+            "node": "Contexto Orden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar TAG - Hold_Fraud": {
+      "main": [
+        [
+          {
+            "node": "Agregar nota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Risk": {
+      "main": [
+        [
+          {
+            "node": "¿Shopify Risk = CANCEL?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Shopify Risk = CANCEL?": {
+      "main": [
+        [
+          {
+            "node": "Agregar TAG - Hold_Fraud",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Ya procesada para Cubbo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar nota": {
+      "main": [
+        [
+          {
+            "node": "Enviar mensaje a Soporte - Orden Medium-High Risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificación por País": {
+      "main": [
+        [
+          {
+            "node": "Agregar TAG - Auto_Approved_MX",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agregar TAG - Review_US_Order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agregar TAG - Hold_Fraud_Non_MX_US",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar TAG - Auto_Approved_MX": {
+      "main": [
+        [
+          {
+            "node": "Agregar nota - MX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar TAG - Review_US_Order": {
+      "main": [
+        [
+          {
+            "node": "Agregar nota - US",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar nota - US": {
+      "main": [
+        [
+          {
+            "node": "Enviar mensaje a Soporte - Revisión US",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar mensaje a Soporte - Orden Medium-High Risk": {
+      "main": [
+        []
+      ]
+    },
+    "Agregar TAG - Hold_Fraud_Non_MX_US": {
+      "main": [
+        [
+          {
+            "node": "Agregar nota - Default",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orden Creada": {
+      "main": [
+        [
+          {
+            "node": "Obtener ordenes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto Orden": {
+      "main": [
+        [
+          {
+            "node": "Obtener Risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Ya procesada para Cubbo?": {
+      "main": [
+        [
+          {
+            "node": "Clasificación por País",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Muere aquí",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-14T19:57:31.270Z",
+  "id": "wR4Xx5u8DcKgEfy3Dq6LO",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Puerta de Fraude & Aprovación prevía Cubbo",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "get",
+        "orderId": "={{$json.id}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -64
+      ],
+      "id": "400cbc09-6604-4d46-a31d-df81b1df6b00",
+      "name": "Obtener ordenes",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "update",
+        "orderId": "={{ $('Contexto Orden').item.json.order_id }}",
+        "updateFields": {
+          "tags": "={{\n  Array.from(\n    new Set(\n      ($json.tags || '')\n        .split(',')\n        .map(t => t.trim())\n        .filter(Boolean)\n        .concat(['HOLD_FRAUD', 'REVIEW_REQUIRED'])\n    )\n  ).join(', ')\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        352,
+        -288
+      ],
+      "id": "17777214-a82e-4bb5-857f-50fba2776061",
+      "name": "Agregar TAG - Hold_Fraud",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "update",
+        "orderId": "={{ $('Contexto Orden').item.json.order_id }}",
+        "updateFields": {
+          "note": "Orden marcada automáticamente como HOLD por posible fraude. Revisión requerida antes de fulfillment."
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -288
+      ],
+      "id": "eb56fa47-820b-4203-b315-df6e04a8fed1",
+      "name": "Agregar nota",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://oscarsfit.myshopify.com/admin/api/2025-10/orders/{{ $json.order_id }}/risks.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -80,
+        -64
+      ],
+      "id": "db0a82dc-df4a-4583-8123-9f4e492ac0bb",
+      "name": "Obtener Risk",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "QCfyMFQLVtCg1K5p",
+          "name": "Shopify GraphQL Auth - Chatbot Jousfit"
+        },
+        "httpHeaderAuth": {
+          "id": "p9DuDk74aGq9qe7j",
+          "name": "X-Shopify-Access-Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4caa377e-a868-4f32-9475-2fd5d248fe02",
+              "leftValue": "={{ $json.risks?.some(r => r.recommendation === 'cancel') }}",
+              "rightValue": "cancel",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        128,
+        -64
+      ],
+      "id": "30a39792-cd65-4f1d-a254-98f33da12a86",
+      "name": "¿Shopify Risk = CANCEL?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Contexto Orden').item.json.country_code }}",
+                    "rightValue": "MX",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a5c5ae71-3e2c-4059-9cf8-7b8602b90303"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "MX"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2e2f1e2b-68c0-4817-b72e-835bf1183a97",
+                    "leftValue": "={{ $('Contexto Orden').item.json.country_code }}",
+                    "rightValue": "US",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "US"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "88f4bd3e-4983-4d38-8c3b-15da6059a45f",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Default"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        0
+      ],
+      "id": "936cd132-63a4-48fc-84c0-f078a85b11a6",
+      "name": "Clasificación por País"
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "update",
+        "orderId": "={{ $('Contexto Orden').item.json.order_id }}",
+        "updateFields": {
+          "tags": "={{\n  Array.from(\n    new Set(\n      ($json.tags || '')\n        .split(',')\n        .map(t => t.trim())\n        .filter(Boolean)\n        .concat(['AUTO_APPROVED_MX', 'READY_FOR_CUBBO'])\n    )\n  ).join(', ')\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        -16
+      ],
+      "id": "30f1d59c-b616-49e1-ae54-c64d80e04104",
+      "name": "Agregar TAG - Auto_Approved_MX",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "update",
+        "orderId": "={{ $('Contexto Orden').item.json.order_id }}",
+        "updateFields": {
+          "tags": "={{\n  Array.from(\n    new Set(\n      ($json.tags || '')\n        .split(',')\n        .map(t => t.trim())\n        .filter(Boolean)\n        .concat(['REVIEW_US_ORDER', 'BLOCK_CUBBO'])\n    )\n  ).join(', ')\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        208
+      ],
+      "id": "98bc9cc3-fcad-4c31-833a-b80fa68aa6e5",
+      "name": "Agregar TAG - Review_US_Order",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "update",
+        "orderId": "={{ $('Contexto Orden').item.json.order_id }}",
+        "updateFields": {
+          "note": "Orden MX autoaprobada por reglas antifraude."
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -16
+      ],
+      "id": "83ccaf71-e4e0-4c62-aa11-ed7930d1ff5d",
+      "name": "Agregar nota - MX",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "update",
+        "orderId": "={{ $('Contexto Orden').item.json.order_id }}",
+        "updateFields": {
+          "note": "Orden de USA. Solicitar comprobante de pago antes de fulfillment."
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        208
+      ],
+      "id": "6bd6895a-39af-4069-936f-59d5b6835c90",
+      "name": "Agregar nota - US",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "soporte@jousfit.com",
+        "subject": "=🚨 Orden en HOLD por posible fraude – #{{$json.name}}",
+        "emailType": "text",
+        "message": "=Se detectó una orden marcada para revisión manual.  Orden: {{$json.name}} Monto: {{$json.total_price}} {{$json.currency}} País de envío: {{$json.shipping_address.country_code}}  Cliente: {{$json.customer.first_name}} {{$json.customer.last_name}} {{$json.email}}  La orden fue etiquetada como: HOLD_FRAUD, REVIEW_REQUIRED  Revisar en Shopify antes de fulfillment.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -288
+      ],
+      "id": "c9f5cbe5-db92-451e-aebc-89b2fab896c4",
+      "name": "Enviar mensaje a Soporte - Orden Medium-High Risk",
+      "webhookId": "7a4d65d5-e765-47f3-b4d1-2526e5aadd88",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UPUoFe5BXOiIPYtA",
+          "name": "Gmail account - soporte@valtmx.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "soporte@jousfit.com",
+        "subject": "=🟡 Orden US requiere revisión – #{{$json.name}}",
+        "emailType": "text",
+        "message": "=Cliente USA. Solicitar comprobante de pago antes de liberar a Cubbo.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1584,
+        208
+      ],
+      "id": "fcf0cd29-667f-4994-85ec-73d9cf245deb",
+      "name": "Enviar mensaje a Soporte - Revisión US",
+      "webhookId": "7a4d65d5-e765-47f3-b4d1-2526e5aadd88",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UPUoFe5BXOiIPYtA",
+          "name": "Gmail account - soporte@valtmx.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "update",
+        "orderId": "={{ $('Contexto Orden').item.json.order_id }}",
+        "updateFields": {
+          "tags": "={{\n  Array.from(\n    new Set(\n      ($json.tags || '')\n        .split(',')\n        .map(t => t.trim())\n        .filter(Boolean)\n        .concat(['HOLD_FRAUD', 'NON_MX_US'])\n    )\n  ).join(', ')\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        432
+      ],
+      "id": "2693387f-1ec9-40d7-84a8-37841a3687d9",
+      "name": "Agregar TAG - Hold_Fraud_Non_MX_US",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "operation": "update",
+        "orderId": "={{ $('Contexto Orden').item.json.order_id }}",
+        "updateFields": {
+          "note": "Orden internacional fuera de MX/US. Revisión manual obligatoria."
+        }
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        432
+      ],
+      "id": "e0fe5dcb-f321-4921-903c-48e1590a23e6",
+      "name": "Agregar nota - Default",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "accessToken",
+        "topic": "orders/create"
+      },
+      "type": "n8n-nodes-base.shopifyTrigger",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        -64
+      ],
+      "id": "4688f630-95c8-4138-b400-2ffc7160119b",
+      "name": "Orden Creada",
+      "webhookId": "a3b3db70-9306-447b-bb1f-21c67883f2ae",
+      "credentials": {
+        "shopifyAccessTokenApi": {
+          "id": "Rg3vH3e1uJUQfkx7",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "87b5aef9-590d-43cb-a188-75ce49215cdb",
+              "name": "order_id",
+              "value": "={{ $json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "40f82d47-d7eb-460a-b6d1-c79ecf519675",
+              "name": "tags",
+              "value": "={{ $json.tags}}",
+              "type": "string"
+            },
+            {
+              "id": "d6b35994-67ce-4eb4-8989-d010468612ee",
+              "name": "country_code",
+              "value": "={{ $json.shipping_address.country_code }}",
+              "type": "string"
+            },
+            {
+              "id": "750772fc-9556-4343-8739-1a28703f7f40",
+              "name": "order",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -272,
+        -64
+      ],
+      "id": "eb12659c-de2c-4817-b686-0a2fb011a7a7",
+      "name": "Contexto Orden"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0ccd8812-dec9-4447-869f-101bfc91514d",
+              "leftValue": "={{ $json.tags?.includes('READY_FOR_CUBBO') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        336,
+        32
+      ],
+      "id": "9f33e93c-2499-411b-a8b3-d67258891463",
+      "name": "¿Ya procesada para Cubbo?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        576,
+        240
+      ],
+      "id": "3e012546-0c81-41ba-aec7-e3437b1ddbef",
+      "name": "Muere aquí"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Mexico_City",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-14T19:57:31.274Z",
+      "createdAt": "2026-01-14T19:57:31.274Z",
+      "role": "workflow:owner",
+      "workflowId": "wR4Xx5u8DcKgEfy3Dq6LO",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-16T05:46:00.767Z",
+  "versionId": "ea416c53-5341-477c-b6cf-0dbbe3c65ebb"
+}
