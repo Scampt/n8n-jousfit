@@ -1,0 +1,44 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {},
+  "createdAt": "2025-12-17T03:26:59.396Z",
+  "id": "4URVL9QuSAvbNShK",
+  "isArchived": true,
+  "meta": null,
+  "name": "Jousfit - Subflow | Envio Problema",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        32
+      ],
+      "id": "242622f7-f2ff-4436-8b67-6a5916597d0b",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-17T03:26:59.399Z",
+      "createdAt": "2025-12-17T03:26:59.399Z",
+      "role": "workflow:owner",
+      "workflowId": "4URVL9QuSAvbNShK",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-17T04:34:51.000Z",
+  "versionId": "243ef2f5-045c-40c3-9f75-30c0b8039516"
+}
