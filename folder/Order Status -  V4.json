@@ -1,0 +1,2720 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-16T04:37:42.000Z",
+    "createdAt": "2026-01-16T04:37:41.532Z",
+    "versionId": "9f16df6a-88cd-464f-8d07-7a44a7239fb8",
+    "workflowId": "ojVOtXSMrjz5CEXr",
+    "nodes": [
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "68f14a79-9b5c-4350-9c95-d414d1be09d3",
+                "name": "conversation_id",
+                "value": "={{ $json.conversation_id }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -800,
+          1056
+        ],
+        "id": "89fb9612-8de2-4137-ac4f-d37d8e3b8092",
+        "name": "Normalizar payload Chatwoot"
+      },
+      {
+        "parameters": {
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "conversation_id",
+                "value": "=eq.{{$json.conversation_id}}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          -576,
+          1056
+        ],
+        "id": "76bd57c7-5bf8-49af-9296-cb1c0daa5977",
+        "name": "Obtener contexto desde Supabase",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "Y7VRgC9ZABE9kFDw",
+            "name": "Header Auth account - Supabase jousfit.com"
+          },
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "9f3d5ae5-a3c6-47cc-87c6-966dd2dc5588",
+                "leftValue": "={{ $json.stage }}",
+                "rightValue": "=order_code_captured",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -352,
+          1312
+        ],
+        "id": "6745c2d8-17d1-4d5b-8671-e65662a67070",
+        "name": "¿Order Code capturado?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "3f59c8e2-bc0f-4bc3-8ce6-c097085fe1ce",
+                "leftValue": "={{ $json.data.orders.edges.length > 0 }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          208,
+          1200
+        ],
+        "id": "34ad6f23-6e88-4298-8616-59e172f5904b",
+        "name": "¿Pedido encontrado?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          800,
+          1296
+        ],
+        "id": "e45d2b68-0475-4b79-a9ca-4407fc559d71",
+        "name": "Pedido no encontrado - Chatwoot Bot",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "authentication": "customAuth",
+          "endpoint": "https://oscarsfit.myshopify.com/admin/api/2024-10/graphql.json",
+          "query": "={\n  orders(first: 1, query: \"name:#{{ $json.order_code }}\") {\n    edges {\n      node {\n        name\n        displayFulfillmentStatus\n        displayFinancialStatus\n\n        lineItems(first: 10) {\n          edges {\n            node {\n              title\n              requiresShipping\n            }\n          }\n        }\n\n        fulfillments {\n          trackingInfo {\n            number\n            url\n            company\n          }\n        }\n      }\n    }\n  }\n}\n",
+          "headerParametersUi": {
+            "parameter": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        },
+        "type": "n8n-nodes-base.graphql",
+        "typeVersion": 1.1,
+        "position": [
+          -48,
+          1200
+        ],
+        "id": "f00c2c5e-805f-458c-854d-42bef911eb8d",
+        "name": "Buscar pedido en Shopify",
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "QCfyMFQLVtCg1K5p",
+            "name": "Shopify GraphQL Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "0dc9e64a-d118-49d3-8387-fdc8c70fd1f9",
+                "leftValue": "={{    $json.data.orders.edges[0].node.lineItems.edges     .every(item => item.node.requiresShipping) }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "false",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          528,
+          1088
+        ],
+        "id": "47ce559d-169f-4233-8c52-2d3e765c75b5",
+        "name": "¿Pedido digital?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"digital_order\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1424,
+          768
+        ],
+        "id": "952cc983-9904-4e6b-8d3f-ba71340986ae",
+        "name": "Actualizar contexto - Pedido digital",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "9b01a732-4fee-4625-9ac2-b5aaa53e6b2e",
+                "name": "order_name",
+                "value": "={{ $json.data.orders.edges[0].node.name }}",
+                "type": "string"
+              },
+              {
+                "id": "5cec8157-d8e9-486d-935f-2e7391f12f06",
+                "name": "fulfillment_status",
+                "value": "={{ $json.data.orders.edges[0].node.displayFulfillmentStatus }}",
+                "type": "string"
+              },
+              {
+                "id": "8b21c045-bb97-4dd5-b20b-42ad1b791fd4",
+                "name": "financial_status",
+                "value": "={{ $json.data.orders.edges[0].node.displayFinancialStatus }}",
+                "type": "string"
+              },
+              {
+                "id": "769640ef-5cbb-4d73-a803-07b13d9cb65f",
+                "name": "tracking_number",
+                "value": "={{ $json.data.orders.edges[0].node.fulfillments?.[0]?.trackingInfo?.[0]?.number || null }}",
+                "type": "string"
+              },
+              {
+                "id": "e3867703-b831-49bc-ac77-d5b97ee4e363",
+                "name": "tracking_url",
+                "value": "={{ $json.data.orders.edges[0].node.fulfillments?.[0]?.trackingInfo?.[0]?.url || null }}",
+                "type": "string"
+              },
+              {
+                "id": "7f71ba30-c4e1-4f2e-9fa1-1243fb1b5b5f",
+                "name": "carrier",
+                "value": "={{ $json.data.orders.edges[0].node.fulfillments?.[0]?.trackingInfo?.[0]?.company || null }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          800,
+          1104
+        ],
+        "id": "941e04a7-f960-4c76-ace4-664182cb0661",
+        "name": "Extraer datos de envío"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "6a0b2847-b908-45cb-b8b2-c8c73f2b93ae",
+                "leftValue": "={{ !!$json.tracking_url }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1040,
+          1104
+        ],
+        "id": "120383cc-f2f2-4251-a9f1-2e578254c6d6",
+        "name": "¿Tiene tracking?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"tracking_sent\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1936,
+          1024
+        ],
+        "id": "03810125-a276-454e-adfa-fc6d8feed622",
+        "name": "Actualizar contexto - Tracking enviado",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1680,
+          1248
+        ],
+        "id": "61bc84b4-f734-4996-a6d8-8b309eb4e960",
+        "name": "Responder pedido en preparación - Chatwoot Bot",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"order_en_preparacion\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1952,
+          1248
+        ],
+        "id": "242e3d77-2682-4874-8dbd-08503169771b",
+        "name": "Actualizar contexto - Pedido en preparación",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"awaiting_order_code\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          528,
+          1488
+        ],
+        "id": "94abaacf-9c09-4ad4-ba2f-61b03535c6b9",
+        "name": "Actualizar contexto - Awaiting order code V3",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2464,
+          1024
+        ],
+        "id": "b67619d2-6832-4716-beec-7000c9a46cc4",
+        "name": "Responder amablemente - Chatwoot Bot",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -576,
+          1280
+        ],
+        "id": "bb4ad547-d084-49bb-a676-dcba4b59c6a5",
+        "name": "Entrada desde V1"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "Para ayudarte necesito el número de tu pedido 😊\nNormalmente lo encuentras en el correo de confirmación y se ve así: #123456",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -48,
+          1488
+        ],
+        "id": "8ffaec0d-24d8-4d92-9a4d-84263da34590",
+        "name": "Construir mensaje de solicitar # pedido -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          224,
+          1488
+        ],
+        "id": "97034c8a-fbbf-42c6-8bca-00f9fa4f8763",
+        "name": "Solicitar # pedido",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "Gracias por compartir tu número de pedido 😊\nNo pude encontrar un pedido con ese número en este momento.\nPor favor verifica que sea correcto o envíamelo nuevamente tal como aparece en tu correo de confirmación (por ejemplo: #123456).\nSi el problema continúa, con gusto lo revisamos juntos 💛",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          528,
+          1296
+        ],
+        "id": "9425787e-72e1-48a3-ac85-21b235b2670b",
+        "name": "Construir mensaje de # pedido inválido -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "¡Gracias por tu mensaje! 😊\nTu pedido corresponde a un **producto digital**, por lo que no cuenta con envío físico ni número de rastreo.\nPuedes acceder a tu compra desde el **correo de confirmación** o directamente desde tu cuenta en **Jousfit**.\nSi quieres:\n👉 Consultar **otro pedido**\n👉 O **hablar con una persona**\nSolo dime cómo te ayudo 💛\n",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          800,
+          896
+        ],
+        "id": "915ef11b-559d-42b3-a804-e478d8bd28b1",
+        "name": "Construir mensaje para pedido digital -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1056,
+          896
+        ],
+        "id": "c4856e30-d682-4f46-b171-60c21a7d1d16",
+        "name": "Responder sobre el pedido digital",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "Gracias por tu mensaje 😊\nTu pedido **{{ $json.order_name }}** se encuentra actualmente en preparación 📦\nEn cuanto sea enviado y tengamos tu guía de rastreo, te avisaremos.\nSi necesitas algo mientras tanto, aquí estoy 💛",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1408,
+          1248
+        ],
+        "id": "977e115d-b6a2-423c-b3ed-5a9c896b3155",
+        "name": "Construir mensaje para pedido digital -  Chatwoot2"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "=¡Gracias por tu espera!\n😊|Tu pedido **{{ $json.order_name }}** ya fue enviado 📦\n🔹 Paquetería: **{{ $json.carrier }}**\n🔹 Número de rastreo: **{{ $json.tracking_number }}**\n🔹 Seguimiento: {{ $json.tracking_url }}Si notas algún retraso o tienes dudas, dime y con gusto te ayudo 💛",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1408,
+          1024
+        ],
+        "id": "e803f320-74a2-45ce-a864-cbd352b6896f",
+        "name": "Construir mensaje para pedido enviado -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1680,
+          1024
+        ],
+        "id": "e8f6ea83-fc58-43ba-9808-92b6508a1b00",
+        "name": "Responder pedido enviado",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "### Ruta para Cubbo",
+          "height": 240,
+          "width": 1264,
+          "color": 5
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          1344,
+          1200
+        ],
+        "id": "4a9b7927-b3d6-47a1-90bc-97e42296ba93",
+        "name": "Sticky Note"
+      },
+      {
+        "parameters": {
+          "content": "### Pedido fulfillment",
+          "height": 240,
+          "width": 1680,
+          "color": 7
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          1344,
+          960
+        ],
+        "id": "5cd0278d-ccd6-48a8-81bf-433317e15419",
+        "name": "Sticky Note1"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "=¡Listo! 😊 Ya te compartí el estado de tu pedido.\nSi quieres:\n👉 Consultar **otro pedido**\n👉 O **hablar con una persona**\nSolo dime qué necesitas 💬",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          2208,
+          1024
+        ],
+        "id": "9874693b-f106-43ca-8a88-7bc83a8725d5",
+        "name": "Construir mensaje pararespuesta amable -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/labels",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"labels\": [\n    \"order_no_encontrado\"\n  ]\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1056,
+          1296
+        ],
+        "id": "e20dd51b-bdfb-4403-9fb7-789c46b76943",
+        "name": "Agregar etiqueta - order no encontrado",
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/labels",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"labels\": [\n      \"prod_programa_digital\",\n      \"res_info_entregada\"\n  ]\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1664,
+          768
+        ],
+        "id": "05cb0541-7df5-47e1-b7c3-39a3aba3be62",
+        "name": "Agregar etiqueta - pedido digital",
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/labels",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"labels\": [\n      \"order_en_preparacion\"\n  ]\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2208,
+          1248
+        ],
+        "id": "65f52a04-db87-4a72-93aa-bb0543e00285",
+        "name": "Agregar etiqueta - order en preparación",
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/labels",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "{\n  \"labels\": [\n      \"order_enviado\"\n  ]\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          2672,
+          1024
+        ],
+        "id": "ceeba639-f572-42b0-a69a-6d5fed345161",
+        "name": "Agregar etiqueta - order enviado",
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "Normalizar payload Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Obtener contexto desde Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener contexto desde Supabase": {
+        "main": [
+          [
+            {
+              "node": "¿Order Code capturado?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Order Code capturado?": {
+        "main": [
+          [
+            {
+              "node": "Buscar pedido en Shopify",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Construir mensaje de solicitar # pedido -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Pedido encontrado?": {
+        "main": [
+          [
+            {
+              "node": "¿Pedido digital?",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Construir mensaje de # pedido inválido -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Pedido no encontrado - Chatwoot Bot": {
+        "main": [
+          [
+            {
+              "node": "Agregar etiqueta - order no encontrado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Buscar pedido en Shopify": {
+        "main": [
+          [
+            {
+              "node": "¿Pedido encontrado?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Pedido digital?": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje para pedido digital -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Extraer datos de envío",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contexto - Pedido digital": {
+        "main": [
+          [
+            {
+              "node": "Agregar etiqueta - pedido digital",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extraer datos de envío": {
+        "main": [
+          [
+            {
+              "node": "¿Tiene tracking?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Tiene tracking?": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje para pedido enviado -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Construir mensaje para pedido digital -  Chatwoot2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contexto - Tracking enviado": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje pararespuesta amable -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Responder pedido en preparación - Chatwoot Bot": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contexto - Pedido en preparación",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contexto - Pedido en preparación": {
+        "main": [
+          [
+            {
+              "node": "Agregar etiqueta - order en preparación",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contexto - Awaiting order code V3": {
+        "main": [
+          []
+        ]
+      },
+      "Responder amablemente - Chatwoot Bot": {
+        "main": [
+          [
+            {
+              "node": "Agregar etiqueta - order enviado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Entrada desde V1": {
+        "main": [
+          [
+            {
+              "node": "Normalizar payload Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje de solicitar # pedido -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Solicitar # pedido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Solicitar # pedido": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contexto - Awaiting order code V3",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje de # pedido inválido -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Pedido no encontrado - Chatwoot Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje para pedido digital -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Responder sobre el pedido digital",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Responder sobre el pedido digital": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contexto - Pedido digital",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje para pedido digital -  Chatwoot2": {
+        "main": [
+          [
+            {
+              "node": "Responder pedido en preparación - Chatwoot Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje para pedido enviado -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Responder pedido enviado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Responder pedido enviado": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contexto - Tracking enviado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje pararespuesta amable -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Responder amablemente - Chatwoot Bot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Kevin Quiroz",
+    "name": "Version 9f16df6a",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "9f16df6a-88cd-464f-8d07-7a44a7239fb8",
+  "connections": {
+    "Normalizar payload Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Obtener contexto desde Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener contexto desde Supabase": {
+      "main": [
+        [
+          {
+            "node": "¿Order Code capturado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Order Code capturado?": {
+      "main": [
+        [
+          {
+            "node": "Buscar pedido en Shopify",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Construir mensaje de solicitar # pedido -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Pedido encontrado?": {
+      "main": [
+        [
+          {
+            "node": "¿Pedido digital?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Construir mensaje de # pedido inválido -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedido no encontrado - Chatwoot Bot": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta - order no encontrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar pedido en Shopify": {
+      "main": [
+        [
+          {
+            "node": "¿Pedido encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Pedido digital?": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje para pedido digital -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extraer datos de envío",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto - Pedido digital": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta - pedido digital",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer datos de envío": {
+      "main": [
+        [
+          {
+            "node": "¿Tiene tracking?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Tiene tracking?": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje para pedido enviado -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Construir mensaje para pedido digital -  Chatwoot2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto - Tracking enviado": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje pararespuesta amable -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder pedido en preparación - Chatwoot Bot": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto - Pedido en preparación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto - Pedido en preparación": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta - order en preparación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto - Awaiting order code V3": {
+      "main": [
+        []
+      ]
+    },
+    "Responder amablemente - Chatwoot Bot": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta - order enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada desde V1": {
+      "main": [
+        [
+          {
+            "node": "Normalizar payload Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje de solicitar # pedido -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Solicitar # pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solicitar # pedido": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto - Awaiting order code V3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje de # pedido inválido -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Pedido no encontrado - Chatwoot Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje para pedido digital -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Responder sobre el pedido digital",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder sobre el pedido digital": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto - Pedido digital",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje para pedido digital -  Chatwoot2": {
+      "main": [
+        [
+          {
+            "node": "Responder pedido en preparación - Chatwoot Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje para pedido enviado -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Responder pedido enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder pedido enviado": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto - Tracking enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje pararespuesta amable -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Responder amablemente - Chatwoot Bot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-18T15:52:05.416Z",
+  "id": "ojVOtXSMrjz5CEXr",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Order Status -  V4",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68f14a79-9b5c-4350-9c95-d414d1be09d3",
+              "name": "conversation_id",
+              "value": "={{ $json.conversation_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -800,
+        1056
+      ],
+      "id": "89fb9612-8de2-4137-ac4f-d37d8e3b8092",
+      "name": "Normalizar payload Chatwoot"
+    },
+    {
+      "parameters": {
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "conversation_id",
+              "value": "=eq.{{$json.conversation_id}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -576,
+        1056
+      ],
+      "id": "76bd57c7-5bf8-49af-9296-cb1c0daa5977",
+      "name": "Obtener contexto desde Supabase",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        },
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9f3d5ae5-a3c6-47cc-87c6-966dd2dc5588",
+              "leftValue": "={{ $json.stage }}",
+              "rightValue": "=order_code_captured",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -352,
+        1312
+      ],
+      "id": "6745c2d8-17d1-4d5b-8671-e65662a67070",
+      "name": "¿Order Code capturado?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3f59c8e2-bc0f-4bc3-8ce6-c097085fe1ce",
+              "leftValue": "={{ $json.data.orders.edges.length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        1200
+      ],
+      "id": "34ad6f23-6e88-4298-8616-59e172f5904b",
+      "name": "¿Pedido encontrado?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        800,
+        1296
+      ],
+      "id": "e45d2b68-0475-4b79-a9ca-4407fc559d71",
+      "name": "Pedido no encontrado - Chatwoot Bot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "customAuth",
+        "endpoint": "https://oscarsfit.myshopify.com/admin/api/2024-10/graphql.json",
+        "query": "={\n  orders(first: 1, query: \"name:#{{ $json.order_code }}\") {\n    edges {\n      node {\n        name\n        displayFulfillmentStatus\n        displayFinancialStatus\n\n        lineItems(first: 10) {\n          edges {\n            node {\n              title\n              requiresShipping\n            }\n          }\n        }\n\n        fulfillments {\n          trackingInfo {\n            number\n            url\n            company\n          }\n        }\n      }\n    }\n  }\n}\n",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        1200
+      ],
+      "id": "f00c2c5e-805f-458c-854d-42bef911eb8d",
+      "name": "Buscar pedido en Shopify",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "QCfyMFQLVtCg1K5p",
+          "name": "Shopify GraphQL Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0dc9e64a-d118-49d3-8387-fdc8c70fd1f9",
+              "leftValue": "={{    $json.data.orders.edges[0].node.lineItems.edges     .every(item => item.node.requiresShipping) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        528,
+        1088
+      ],
+      "id": "47ce559d-169f-4233-8c52-2d3e765c75b5",
+      "name": "¿Pedido digital?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"digital_order\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1424,
+        768
+      ],
+      "id": "952cc983-9904-4e6b-8d3f-ba71340986ae",
+      "name": "Actualizar contexto - Pedido digital",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9b01a732-4fee-4625-9ac2-b5aaa53e6b2e",
+              "name": "order_name",
+              "value": "={{ $json.data.orders.edges[0].node.name }}",
+              "type": "string"
+            },
+            {
+              "id": "5cec8157-d8e9-486d-935f-2e7391f12f06",
+              "name": "fulfillment_status",
+              "value": "={{ $json.data.orders.edges[0].node.displayFulfillmentStatus }}",
+              "type": "string"
+            },
+            {
+              "id": "8b21c045-bb97-4dd5-b20b-42ad1b791fd4",
+              "name": "financial_status",
+              "value": "={{ $json.data.orders.edges[0].node.displayFinancialStatus }}",
+              "type": "string"
+            },
+            {
+              "id": "769640ef-5cbb-4d73-a803-07b13d9cb65f",
+              "name": "tracking_number",
+              "value": "={{ $json.data.orders.edges[0].node.fulfillments?.[0]?.trackingInfo?.[0]?.number || null }}",
+              "type": "string"
+            },
+            {
+              "id": "e3867703-b831-49bc-ac77-d5b97ee4e363",
+              "name": "tracking_url",
+              "value": "={{ $json.data.orders.edges[0].node.fulfillments?.[0]?.trackingInfo?.[0]?.url || null }}",
+              "type": "string"
+            },
+            {
+              "id": "7f71ba30-c4e1-4f2e-9fa1-1243fb1b5b5f",
+              "name": "carrier",
+              "value": "={{ $json.data.orders.edges[0].node.fulfillments?.[0]?.trackingInfo?.[0]?.company || null }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        1104
+      ],
+      "id": "941e04a7-f960-4c76-ace4-664182cb0661",
+      "name": "Extraer datos de envío"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6a0b2847-b908-45cb-b8b2-c8c73f2b93ae",
+              "leftValue": "={{ !!$json.tracking_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1040,
+        1104
+      ],
+      "id": "120383cc-f2f2-4251-a9f1-2e578254c6d6",
+      "name": "¿Tiene tracking?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"tracking_sent\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1936,
+        1024
+      ],
+      "id": "03810125-a276-454e-adfa-fc6d8feed622",
+      "name": "Actualizar contexto - Tracking enviado",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1680,
+        1248
+      ],
+      "id": "61bc84b4-f734-4996-a6d8-8b309eb4e960",
+      "name": "Responder pedido en preparación - Chatwoot Bot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"order_en_preparacion\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1952,
+        1248
+      ],
+      "id": "242e3d77-2682-4874-8dbd-08503169771b",
+      "name": "Actualizar contexto - Pedido en preparación",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar payload Chatwoot').item.json.conversation_id }},\n  \"stage\": \"awaiting_order_code\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        528,
+        1488
+      ],
+      "id": "94abaacf-9c09-4ad4-ba2f-61b03535c6b9",
+      "name": "Actualizar contexto - Awaiting order code V3",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2464,
+        1024
+      ],
+      "id": "b67619d2-6832-4716-beec-7000c9a46cc4",
+      "name": "Responder amablemente - Chatwoot Bot",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -576,
+        1280
+      ],
+      "id": "bb4ad547-d084-49bb-a676-dcba4b59c6a5",
+      "name": "Entrada desde V1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "Para ayudarte necesito el número de tu pedido 😊\nNormalmente lo encuentras en el correo de confirmación y se ve así: #123456",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        1488
+      ],
+      "id": "8ffaec0d-24d8-4d92-9a4d-84263da34590",
+      "name": "Construir mensaje de solicitar # pedido -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        1488
+      ],
+      "id": "97034c8a-fbbf-42c6-8bca-00f9fa4f8763",
+      "name": "Solicitar # pedido",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "Gracias por compartir tu número de pedido 😊\nNo pude encontrar un pedido con ese número en este momento.\nPor favor verifica que sea correcto o envíamelo nuevamente tal como aparece en tu correo de confirmación (por ejemplo: #123456).\nSi el problema continúa, con gusto lo revisamos juntos 💛",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        1296
+      ],
+      "id": "9425787e-72e1-48a3-ac85-21b235b2670b",
+      "name": "Construir mensaje de # pedido inválido -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "¡Gracias por tu mensaje! 😊\nTu pedido corresponde a un **producto digital**, por lo que no cuenta con envío físico ni número de rastreo.\nPuedes acceder a tu compra desde el **correo de confirmación** o directamente desde tu cuenta en **Jousfit**.\nSi quieres:\n👉 Consultar **otro pedido**\n👉 O **hablar con una persona**\nSolo dime cómo te ayudo 💛\n",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        896
+      ],
+      "id": "915ef11b-559d-42b3-a804-e478d8bd28b1",
+      "name": "Construir mensaje para pedido digital -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1056,
+        896
+      ],
+      "id": "c4856e30-d682-4f46-b171-60c21a7d1d16",
+      "name": "Responder sobre el pedido digital",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "Gracias por tu mensaje 😊\nTu pedido **{{ $json.order_name }}** se encuentra actualmente en preparación 📦\nEn cuanto sea enviado y tengamos tu guía de rastreo, te avisaremos.\nSi necesitas algo mientras tanto, aquí estoy 💛",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1408,
+        1248
+      ],
+      "id": "977e115d-b6a2-423c-b3ed-5a9c896b3155",
+      "name": "Construir mensaje para pedido digital -  Chatwoot2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "=¡Gracias por tu espera!\n😊|Tu pedido **{{ $json.order_name }}** ya fue enviado 📦\n🔹 Paquetería: **{{ $json.carrier }}**\n🔹 Número de rastreo: **{{ $json.tracking_number }}**\n🔹 Seguimiento: {{ $json.tracking_url }}Si notas algún retraso o tienes dudas, dime y con gusto te ayudo 💛",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1408,
+        1024
+      ],
+      "id": "e803f320-74a2-45ce-a864-cbd352b6896f",
+      "name": "Construir mensaje para pedido enviado -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1680,
+        1024
+      ],
+      "id": "e8f6ea83-fc58-43ba-9808-92b6508a1b00",
+      "name": "Responder pedido enviado",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Ruta para Cubbo",
+        "height": 240,
+        "width": 1264,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        1200
+      ],
+      "id": "4a9b7927-b3d6-47a1-90bc-97e42296ba93",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### Pedido fulfillment",
+        "height": 240,
+        "width": 1680,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        960
+      ],
+      "id": "5cd0278d-ccd6-48a8-81bf-433317e15419",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "=¡Listo! 😊 Ya te compartí el estado de tu pedido.\nSi quieres:\n👉 Consultar **otro pedido**\n👉 O **hablar con una persona**\nSolo dime qué necesitas 💬",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2208,
+        1024
+      ],
+      "id": "9874693b-f106-43ca-8a88-7bc83a8725d5",
+      "name": "Construir mensaje pararespuesta amable -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/labels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"labels\": [\n    \"order_no_encontrado\"\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1056,
+        1296
+      ],
+      "id": "e20dd51b-bdfb-4403-9fb7-789c46b76943",
+      "name": "Agregar etiqueta - order no encontrado",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/labels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"labels\": [\n      \"prod_programa_digital\",\n      \"res_info_entregada\"\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1664,
+        768
+      ],
+      "id": "05cb0541-7df5-47e1-b7c3-39a3aba3be62",
+      "name": "Agregar etiqueta - pedido digital",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/labels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"labels\": [\n      \"order_en_preparacion\"\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2208,
+        1248
+      ],
+      "id": "65f52a04-db87-4a72-93aa-bb0543e00285",
+      "name": "Agregar etiqueta - order en preparación",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/labels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"labels\": [\n      \"order_enviado\"\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2672,
+        1024
+      ],
+      "id": "ceeba639-f572-42b0-a69a-6d5fed345161",
+      "name": "Agregar etiqueta - order enviado",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-18T15:52:05.418Z",
+      "createdAt": "2025-12-18T15:52:05.418Z",
+      "role": "workflow:owner",
+      "workflowId": "ojVOtXSMrjz5CEXr",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-09T21:59:03.917Z",
+      "createdAt": "2026-01-09T21:59:03.917Z",
+      "id": "OKiFmC3RPQIiaJWA",
+      "name": "v4"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-16T04:37:41.530Z",
+  "versionId": "9f16df6a-88cd-464f-8d07-7a44a7239fb8"
+}
