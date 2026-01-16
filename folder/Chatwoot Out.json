@@ -1,0 +1,368 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Chatwoot Outbound": {
+      "main": [
+        [
+          {
+            "node": "Filtrar mensajes de agentes",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Clasificar evento y enriquecer datos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Filtrar actualización de conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar mensajes de agentes": {
+      "main": [
+        [
+          {
+            "node": "Obtener conversación Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener conversación Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Enriquecer datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enriquecer datos": {
+      "main": [
+        [
+          {
+            "node": "Supabase Log (agent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Log (agent)": {
+      "main": [
+        [
+          {
+            "node": "Supabase Upsert Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificar evento y enriquecer datos": {
+      "main": [
+        [
+          {
+            "node": "Supabase Log (event)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Log (event)": {
+      "main": [
+        [
+          {
+            "node": "Supabase Update Context (from Event)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-17T03:25:17.230Z",
+  "id": "J0yIwM06ZuwzekmQ",
+  "isArchived": false,
+  "meta": null,
+  "name": "Chatwoot Out",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatwoot-out",
+        "options": {
+          "responseData": "{\"status\":\"ok\",\"message\":\"Webhook recibido\"}"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        -96
+      ],
+      "id": "e442c204-557c-4e18-be8b-35d928c155ec",
+      "name": "Chatwoot Outbound",
+      "webhookId": "4342779d-a1be-4ef1-8aa0-3d2f6aaa9e05"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🔍 Detectar estructura del webhook (Chatwoot → n8n)\nconst body = $json.body || $json;\nconst msg = body.conversation?.messages?.[0] || {};\n\n// 🔎 Extraer datos principales\nconst senderType = msg.sender_type || msg.sender?.type || null;\nconst messageType = body.message_type || msg.message_type;\nconst content = msg.content || body.content || null;\n\n// 🧠 Condición para detectar mensaje de agente humano:\n// Chatwoot usa sender_type=\"User\" o sender_type=\"Agent\" cuando lo envía un agente.\nconst isFromAgent =\n  senderType?.toLowerCase() === \"user\" ||\n  senderType?.toLowerCase() === \"agent\" ||\n  (body.sender?.account && !body.sender?.type); // fallback por si el payload cambia\n\nif (isFromAgent && content) {\n  return [\n    {\n      json: {\n        conversation_id:\n          msg.conversation_id || body.conversation?.id || null,\n        content,\n        created_at: msg.created_at || body.created_at || new Date().toISOString()\n      }\n    }\n  ];\n}\n\n// 💤 Si no cumple condición, no devuelve datos\nreturn [];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        -96
+      ],
+      "id": "b72093c6-3d12-4ee1-bc8d-508ab63f4353",
+      "name": "Filtrar mensajes de agentes",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-jousfit-chatwoot.z5cvat.easypanel.host/api/v1/accounts/1/conversations/{{ $json.conversation_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        -96
+      ],
+      "id": "306d490e-64b5-4258-9ab9-805914e281dd",
+      "name": "Obtener conversación Chatwoot",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "L58LBR9E6dmzGUWX",
+          "name": "Header Auth account - API Token Chatwoot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🧩 Datos base\nconst msg = $input.item.json;   // mensaje del nodo anterior (filtrado)\nconst conv = $json;             // respuesta completa del HTTP Request (Chatwoot)\n\n// 🧠 Extraer contenido del mensaje con múltiples posibles fuentes\nconst agentReply =\n  msg.content ||\n  conv.last_non_activity_message?.content ||\n  conv.messages?.[0]?.content ||\n  conv.messages?.slice(-1)[0]?.content || // último mensaje si hay varios\n  null;\n\n// 🧩 Rol funcional: quién habla\nlet role = \"unknown\";\nif (msg.sender_type === \"User\" && msg.message_type === \"outgoing\") {\n  role = \"agent\";\n} else if (msg.sender_type === \"Contact\") {\n  role = \"user\";\n} else if (msg.private === true) {\n  role = \"note\";\n} else {\n  role = \"assistant\";\n}\n\n// 🧩 Rol jerárquico del agente (de Chatwoot)\nconst agentRole = conv.meta?.assignee?.role ?? null;\n\n// 🧩 Datos adicionales\nconst conversationId =\n  msg.conversation_id ||\n  conv.id ||\n  conv.messages?.[0]?.conversation_id ||\n  conv.last_non_activity_message?.conversation_id ||\n  null;\n\nconst contactId = conv.meta?.sender?.id ?? null;\nconst name = conv.meta?.sender?.name ?? null;\nconst email = conv.meta?.sender?.email ?? null;\nconst sentAt =\n  msg.created_at ||\n  conv.messages?.[0]?.created_at ||\n  conv.last_non_activity_message?.created_at ||\n  new Date().toISOString();\n\nreturn [\n  {\n    json: {\n      conversation_id: conversationId,\n      contact_id: contactId,\n      name,\n      email,\n      agent_reply: agentReply,\n      sent_at: sentAt,\n      role,\n      agent_role: agentRole\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -96
+      ],
+      "id": "f1ed1227-0ddd-4e35-8d05-99f68a5f6734",
+      "name": "Enriquecer datos"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/message_log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"role\": {{ JSON.stringify($json.role || \"agent\") }},\n  \"content\": {{ JSON.stringify($json.agent_reply) }},\n  \"data\": {\n    \"contact_id\": {{ $json.contact_id || \"null\" }},\n    \"email\": {{ $json.email ? JSON.stringify($json.email) : \"null\" }},\n    \"name\": {{ $json.name ? JSON.stringify($json.name) : \"null\" }},\n    \"agent_role\": {{ JSON.stringify($json.agent_role || null) }},\n    \"sent_at\": {{ JSON.stringify($json.sent_at || new Date().toISOString()) }}\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        656,
+        -96
+      ],
+      "id": "af1ec226-43b0-4586-8124-782f69e1753c",
+      "name": "Supabase Log (agent)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"stage\": {{ JSON.stringify($json.stage || \"human_response\") }},\n  \"updated_at\": {{ JSON.stringify(new Date().toISOString()) }},\n  \"last_ai_reply\": {{ JSON.stringify($('Enriquecer datos').item.json.agent_reply || null) }},\n  \"last_customer_message\": {{ JSON.stringify($('Enriquecer datos').item.json.name || null) }},\n  \"agent_role\": {{ JSON.stringify($('Enriquecer datos').item.json.agent_role || null) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        864,
+        -96
+      ],
+      "id": "0c38d73a-9ce7-4660-b6e1-99b3548c3d3f",
+      "name": "Supabase Upsert Context",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nconst msg = body.content || \"\";\nconst conversation = body.conversation || {};\nconst meta = conversation.meta || {};\nconst senderMeta = meta.sender || {};\nconst assignee = meta.assignee || {};\nconst labels = conversation.labels || [];\n\nconst conversationId = conversation.id || null;\nconst senderName = senderMeta.name || body.sender?.name || \"Desconocido\";\nconst senderType = senderMeta.type || \"unknown\";\nconst assigneeType = assignee.type || null;\nconst assigneeName = assignee.name || null;\n\n// 🔍 Detectar tipo de actor y evento\nlet actorType = \"unknown\";\nlet eventType = \"unknown\";\n\n// 1️⃣ Cliente\nif (senderType === \"contact\") {\n  actorType = \"customer\";\n  eventType = \"customer_message\";\n}\n\n// 2️⃣ Agente humano\nelse if (assigneeType === \"user\" || assigneeType === \"agent\") {\n  actorType = \"human\";\n  eventType = \"human_response\";\n}\n\n// 3️⃣ Respuesta de IA (cuando no hay agente y viene de sistema)\nelse if (senderType === \"bot\" || assigneeType === \"assistant\") {\n  actorType = \"assistant\";\n  eventType = \"ai_response\";\n}\n\n// 4️⃣ Fallback por labels (si existiera label de IA)\nelse if (labels.some(l => l.includes(\"intent_\") || l.includes(\"ai_\"))) {\n  actorType = \"assistant\";\n  eventType = \"ai_response\";\n}\n\nreturn [\n  {\n    json: {\n      conversation_id: conversationId,\n      actor_type: actorType,\n      actor_name: senderName,\n      event_type: eventType,\n      message: msg,\n      timestamp: new Date().toISOString(),\n      debug: {\n        senderType,\n        assigneeType,\n        labels\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        128
+      ],
+      "id": "5732e187-6bfe-484b-9567-5194ca072e58",
+      "name": "Clasificar evento y enriquecer datos"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_events?on_conflict=conversation_id,timestamp",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"actor_type\": {{ JSON.stringify($json.actor_type) }},\n  \"actor_name\": {{ JSON.stringify($json.actor_name) }},\n  \"event_type\": {{ JSON.stringify($json.event_type) }},\n  \"message\": {{ JSON.stringify($json.message) }},\n  \"timestamp\": {{ JSON.stringify($json.timestamp) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        128
+      ],
+      "id": "245b5592-3691-46c5-b961-5a7470ee8348",
+      "name": "Supabase Log (event)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"stage\": {{ JSON.stringify($json.event_type) }},\n  \"last_customer_message\": {{ $json.actor_type === \"customer\" ? JSON.stringify($json.message) : \"null\" }},\n  \"last_ai_reply\": {{ $json.actor_type === \"assistant\" ? JSON.stringify($json.message) : \"null\" }},\n  \"updated_at\": {{ JSON.stringify(new Date().toISOString()) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        496,
+        128
+      ],
+      "id": "4b7e4b4e-74d5-4cb1-b9c1-2dbc55870bf9",
+      "name": "Supabase Update Context (from Event)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $json.body?.event || $json.event;\nconst conv = $json.body?.conversation || $json.conversation;\n\nif (event === \"conversation_updated\" && conv?.labels?.length) {\n  return [{ json: conv }];\n}\n\nreturn [];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        336
+      ],
+      "id": "f22e41bc-e55c-4551-b55e-968a7ac742cc",
+      "name": "Filtrar actualización de conversación"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-17T03:25:17.233Z",
+      "createdAt": "2025-12-17T03:25:17.233Z",
+      "role": "workflow:owner",
+      "workflowId": "J0yIwM06ZuwzekmQ",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-17T03:26:00.810Z",
+  "versionId": "9b96ad3b-da0c-4b33-ac08-c5bde8dd9c57"
+}
