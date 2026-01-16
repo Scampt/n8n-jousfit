@@ -1,0 +1,1038 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Calcular fallback_count": {
+      "main": [
+        [
+          {
+            "node": "Preparar input para V5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar input para V5": {
+      "main": [
+        [
+          {
+            "node": "Call 'Clasificador - V5'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada desde V7": {
+      "main": [
+        [
+          {
+            "node": "Normalizar evento Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder fallback post-handoff": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto -fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Activar fallback?": {
+      "main": [
+        [
+          {
+            "node": "Responder fallback post-handoff",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Muere aquí - Esperando humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular tiempo en handoff": {
+      "main": [
+        [
+          {
+            "node": "¿Activar fallback?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿En handoff humano?": {
+      "main": [
+        [
+          {
+            "node": "Calcular tiempo en handoff",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Evaluar necesidad de humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluar necesidad de humano": {
+      "main": [
+        [
+          {
+            "node": "Calcular fallback_count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Clasificador - V5'": {
+      "main": [
+        [
+          {
+            "node": "Router por estado - intención",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto -fallback": {
+      "main": [
+        [
+          {
+            "node": "Router por estado - intención",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto - handoff_humano": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiqueta - handoff_humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder transferencia a humano - Chatwoot Bot": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto - handoff_humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router por estado - intención": {
+      "main": [
+        [
+          {
+            "node": "Responder transferencia a humano - Chatwoot Bot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Workflow V3 – Order Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Workflow V3 – Order Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Workflow V3 – Order Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta ya entregada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Mensaje del usuario?": {
+      "main": [
+        [
+          {
+            "node": "Obtener contexto desde Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Muere aquí",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener contexto desde Supabase": {
+      "main": [
+        [
+          {
+            "node": "¿En handoff humano?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar evento Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "¿Mensaje del usuario?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-18T02:21:05.510Z",
+  "id": "3KgIQM9GZkcvBXtN",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Orquestador & Router - V4 (deprecated)",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        64
+      ],
+      "id": "65e79268-575c-41ab-a7ce-b55401ebeb21",
+      "name": "Entrada desde V7"
+    },
+    {
+      "parameters": {
+        "jsCode": "let fallbackCount = 0;\n\n// Regla simple y segura por ahora\nif ($json.last_ai_reply === 'fallback_after_handoff') {\n  fallbackCount = 1;\n}\n\nreturn [{\n  ...$json,\n  fallback_count: fallbackCount\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        48
+      ],
+      "id": "bb9802a9-3a20-4334-a3f9-0e7c2c0e2daa",
+      "name": "Calcular fallback_count"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "06816333-ba8d-433b-9c70-d6669d37712d",
+              "name": "conversation_id",
+              "value": "={{ $json.conversation_id }}",
+              "type": "number"
+            },
+            {
+              "id": "6a0d6af0-163a-442b-a7bb-b5ffe1512f14",
+              "name": "message_text",
+              "value": "={{ $json.last_customer_message }}",
+              "type": "string"
+            },
+            {
+              "id": "645730d2-bd28-4581-8e29-73f177199cf0",
+              "name": "stage",
+              "value": "={{ $json.stage }}",
+              "type": "string"
+            },
+            {
+              "id": "1ea0dcad-8331-4c08-943f-a994c7d688ec",
+              "name": "intent",
+              "value": "={{ $json.intent }}",
+              "type": "string"
+            },
+            {
+              "id": "ad7e5f87-12d5-4c85-bc7d-78f33e7d3475",
+              "name": "last_ai_reply",
+              "value": "={{ $json.last_ai_reply }}",
+              "type": "string"
+            },
+            {
+              "id": "e5fcacbe-a93e-438d-81de-4558ddbf9f72",
+              "name": "last_customer_message",
+              "value": "={{ $json.last_customer_message }}",
+              "type": "string"
+            },
+            {
+              "id": "cb67e728-c22a-4295-b702-684a90edc75a",
+              "name": "fallback_count",
+              "value": "={{ $json.fallback_count }}",
+              "type": "number"
+            },
+            {
+              "id": "ce9d5ef3-583e-4793-8b71-edbf6c0f2422",
+              "name": "confidence",
+              "value": "={{ $json.confidence }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1168,
+        48
+      ],
+      "id": "f7e07a6c-c53c-44f3-813c-a007f2f1812d",
+      "name": "Preparar input para V5"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qEjUekaoWV7hU1hR",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/qEjUekaoWV7hU1hR",
+          "cachedResultName": "Clasificador - V5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        48
+      ],
+      "id": "f7c5365d-915c-4c9a-8771-4b309b33225a",
+      "name": "Call 'Clasificador - V5'"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar evento Chatwoot').item.json.conversation_id }},\n  \"intent\": \"handoff_humano\",\n  \"stage\": \"handoff_fallback_bot\",\n  \"last_ai_reply\": \"fallback_after_handoff\",\n  \"confidence\": 1,\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1376,
+        -304
+      ],
+      "id": "0b680043-01dd-4451-a64d-3cbec45ebb06",
+      "name": "Actualizar contexto -fallback",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_access_token",
+              "value": "VYwD8NvEyYNoCTbWaqaRYC3L"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"Te canalizo con una persona de nuestro equipo para ayudarte 💛\nEn breve alguien continúa contigo.\",\n  \"message_type\": \"outgoing\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1152,
+        -304
+      ],
+      "id": "4cba236c-da1c-43d9-931a-9e2cb09d5c24",
+      "name": "Responder fallback post-handoff",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        -144
+      ],
+      "id": "b45984fc-e3a1-4b9b-a0a7-dfe413c3d03a",
+      "name": "Muere aquí - Esperando humano"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "20221531-b86e-45c7-b3c6-57b4fac97bae",
+              "leftValue": "={{ $json.should_fallback === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        928,
+        -160
+      ],
+      "id": "2d0d190a-2eb7-429d-acdc-bde3594c65f3",
+      "name": "¿Activar fallback?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = Date.now();\nconst updated = new Date($json.updated_at).getTime();\n\nconst minutesWaiting = Math.floor((now - updated) / 60000);\n\nreturn [{\n  ...$json,\n  minutes_waiting: minutesWaiting,\n  should_fallback: minutesWaiting >= 5\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -160
+      ],
+      "id": "7ab33ee4-bba6-4eb3-9605-a739c1d9b251",
+      "name": "Calcular tiempo en handoff"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "29d57cb2-2e2d-4336-b51c-0c5235442f75",
+              "leftValue": "={{ $json.stage === 'handoff_humano' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        432,
+        -32
+      ],
+      "id": "ffa44605-2559-4543-95f3-cda9be26d00d",
+      "name": "¿En handoff humano?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = ($json.message_text || '').toLowerCase().trim();\nconst stage = $json.stage || '';\n\n// Etapas sensibles\nconst sensitiveStages = [\n  'awaiting_order_code',\n  'order_no_encontrado',\n  'order_en_preparacion'\n];\n\n// Señales\nconst explicitHuman = /humano|persona|asesor|agente|soporte|atencion|alguien real/.test(text);\n\nconst frustrationWords = /no sirve|no funciona|no me ayudas|otra vez|ya te dije|no entiendes|esto no ayuda/;\nconst frustration = frustrationWords.test(text);\n\nconst veryShort = text.length > 0 && text.length <= 3;\nconst silentSignals = ['?', 'ok', 'ya', '...', 'nada'];\nconst silent = silentSignals.includes(text);\n\nconst isSensitiveStage = sensitiveStages.includes(stage);\n\n// Decisión\nconst handoff =\n  explicitHuman ||\n  (frustration && isSensitiveStage) ||\n  (silent && isSensitiveStage) ||\n  (veryShort && isSensitiveStage);\n\n// Motivo\nlet reason = 'continue_bot';\nif (explicitHuman) reason = 'explicit_request';\nelse if (frustration && isSensitiveStage) reason = 'frustration_loop';\nelse if (silent && isSensitiveStage) reason = 'silent_loop';\nelse if (veryShort && isSensitiveStage) reason = 'short_response_loop';\n\nreturn [\n  {\n    ...$json,\n    handoff,\n    handoff_reason: reason\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        48
+      ],
+      "id": "93d627e0-a481-4c90-9366-c8c04af6213b",
+      "name": "Evaluar necesidad de humano"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatwoot-events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1536,
+        400
+      ],
+      "id": "cc770079-f19c-4224-b874-c763697743d4",
+      "name": "Chatwoot Events",
+      "webhookId": "b1ee011a-5f50-4d42-b5fc-bbd75ccb0362",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar evento Chatwoot').item.json.conversation_id }}/labels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_access_token",
+              "value": "VYwD8NvEyYNoCTbWaqaRYC3L"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"labels\": [\n    \"handoff_humano\",\n    \"needs_human\",\n    \"auto_paused\"\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2640,
+        -128
+      ],
+      "id": "038001aa-0f16-4b8d-bf1c-8d675824f9c4",
+      "name": "Agregar etiqueta - handoff_humano"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Normalizar evento Chatwoot').item.json.conversation_id }},\n  \"intent\": \"handoff_humano\",\n  \"stage\": \"handoff_humano\",\n  \"last_ai_reply\": \"Transferido a humano\",\n  \"confidence\": 1,\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2432,
+        -128
+      ],
+      "id": "75889444-f25e-4c3e-9674-a93672873ab2",
+      "name": "Actualizar contexto - handoff_humano",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar evento Chatwoot').item.json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_access_token",
+              "value": "VYwD8NvEyYNoCTbWaqaRYC3L"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"¡Claro! 😊\\n\\nTe estoy canalizando con una persona de nuestro equipo para ayudarte.\\n\\nEn breve alguien continuará contigo 👋\",\n  \"message_type\": \"outgoing\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2208,
+        -128
+      ],
+      "id": "dbd15f58-f4f0-4775-b794-838fa066f765",
+      "name": "Responder transferencia a humano - Chatwoot Bot",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2208,
+        272
+      ],
+      "id": "a429938f-59ab-4cf6-b26c-f4af8bef4813",
+      "name": "Respuesta ya entregada"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ojVOtXSMrjz5CEXr",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ojVOtXSMrjz5CEXr",
+          "cachedResultName": "Workflow V3 – Order Status"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2208,
+        48
+      ],
+      "id": "16dc736d-f3be-415c-8d52-a9b36c8235f1",
+      "name": "Workflow V3 – Order Status"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.v5_route === 'handoff_humano' }}",
+                    "rightValue": "={{ \n  ['awaiting_order_code', 'order_code_captured', 'order_en_preparacion', null, undefined]\n  .includes($json.stage)\n}}",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "348a2709-2e9b-47a0-b60b-9e47f5372e61"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Handoff humano"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ad3caaa1-5145-4a3b-a673-4a6985a83ad7",
+                    "leftValue": "={{ $json.v5_route === 'order_status' }}",
+                    "rightValue": "default",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Order Status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2729f825-9b70-4d8a-b94a-cb9edf265feb",
+                    "leftValue": "={{ $json.v5_route === 'digital_order' }}",
+                    "rightValue": "=",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Digital Order"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6748e3b8-4aa8-497b-9a9f-1d69a9959bad",
+                    "leftValue": "={{ $json.v5_route === 'clarify' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Aclaración"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "49ee4c6f-cc2b-4a4b-bfbe-04cc592b5448",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Default"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1808,
+        0
+      ],
+      "id": "b667cdba-b60e-4742-be31-6f87887e7639",
+      "name": "Router por estado - intención"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e9902fa9-062e-4e39-b841-322dcb130fdc",
+              "leftValue": "={{ \n  $json.message_type === 'incoming' \n  && $json.sender_type === 'Contact' \n}}",
+              "rightValue": "=user",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -48,
+        64
+      ],
+      "id": "48e6b835-71ea-4936-a5ac-c6b833e542fe",
+      "name": "¿Mensaje del usuario?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        224,
+        224
+      ],
+      "id": "f8bf4826-0a35-4b8d-b940-d1cda80698aa",
+      "name": "Muere aquí"
+    },
+    {
+      "parameters": {
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "conversation_id",
+              "value": "=eq.{{$json.conversation_id}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        -32
+      ],
+      "id": "371b0485-5006-49a7-9a3b-f12cccf28cd8",
+      "name": "Obtener contexto desde Supabase",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        },
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68f14a79-9b5c-4350-9c95-d414d1be09d3",
+              "name": "conversation_id",
+              "value": "={{ $json.body.conversation.messages[0].conversation_id }}",
+              "type": "number"
+            },
+            {
+              "id": "9beef3cf-2e20-4bc7-8cac-4f0ed6db0f70",
+              "name": "message_id",
+              "value": "={{ $json.body.conversation.messages[0].id }}",
+              "type": "number"
+            },
+            {
+              "id": "3ff7e138-de38-43ab-94ec-56b6f72b3afc",
+              "name": "message_text",
+              "value": "={{ $json.body.conversation.messages[0].content }}",
+              "type": "string"
+            },
+            {
+              "id": "350baf0f-571a-4222-aaa0-2b3e9a8c4b65",
+              "name": "sender_type",
+              "value": "={{ $json.body.conversation.messages[0].sender_type }}",
+              "type": "string"
+            },
+            {
+              "id": "63210a43-486b-4e57-ae17-59bc4d0aa4c7",
+              "name": "message_type",
+              "value": "={{ $json.body.message_type }}",
+              "type": "string"
+            },
+            {
+              "id": "b90a504b-2cb5-4a8f-9ab6-7bc48b2854b0",
+              "name": "contact_email",
+              "value": "={{ $json.body.conversation.messages[0].sender.email }}",
+              "type": "string"
+            },
+            {
+              "id": "337ef190-9268-41a5-9086-b877c0659040",
+              "name": "contact_name",
+              "value": "={{ $json.body.conversation.messages[0].sender.name }}",
+              "type": "string"
+            },
+            {
+              "id": "f7d3839b-96fe-481f-963c-18cd50d1960d",
+              "name": "event",
+              "value": "={{ $json.body.event }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -272,
+        64
+      ],
+      "id": "04c7165a-dda3-440b-acf9-a85f35b40a0c",
+      "name": "Normalizar evento Chatwoot"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "timezone": "America/Mexico_City",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-18T02:21:05.513Z",
+      "createdAt": "2025-12-18T02:21:05.513Z",
+      "role": "workflow:owner",
+      "workflowId": "3KgIQM9GZkcvBXtN",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-08T18:27:12.369Z",
+      "createdAt": "2026-01-08T18:26:37.589Z",
+      "id": "3vjVIS1AKNZHcVWU",
+      "name": "evolved"
+    },
+    {
+      "updatedAt": "2026-01-08T18:26:28.349Z",
+      "createdAt": "2026-01-08T18:26:28.349Z",
+      "id": "fO0k520onZxQ3gx2",
+      "name": "deprecated"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-08T18:27:16.010Z",
+  "versionId": "48dcb630-da05-44f4-aebd-9f96c2c77ae0"
+}
