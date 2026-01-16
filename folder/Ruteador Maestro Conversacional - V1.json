@@ -1,0 +1,2216 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-15T19:07:22.000Z",
+    "createdAt": "2026-01-15T19:07:21.318Z",
+    "versionId": "d9aca257-f6f8-4385-ac91-222d2878e413",
+    "workflowId": "cJ4KluDdj0cny0Z3",
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          -208,
+          -400
+        ],
+        "id": "8c1d6ae9-aa89-47c9-8a30-3a5883c6106b",
+        "name": "Muere aquí"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "68f14a79-9b5c-4350-9c95-d414d1be09d3",
+                "name": "conversation_id",
+                "value": "={{ $json.body.conversation.id }}",
+                "type": "number"
+              },
+              {
+                "id": "fe2cbea4-b982-4f13-8cd6-e0731b3b8388",
+                "name": "last_user_message",
+                "value": "={{ $json.body.content }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -208,
+          -640
+        ],
+        "id": "b6788559-1d5f-46ad-9b2e-d5f44851f118",
+        "name": "Normalizar payload Chatwoot"
+      },
+      {
+        "parameters": {
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "conversation_id",
+                "value": "=eq.{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          48,
+          -400
+        ],
+        "id": "3f5c3d4e-953e-44a2-979f-020b2711d2c0",
+        "name": "Obtener contexto - Supabase",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "Y7VRgC9ZABE9kFDw",
+            "name": "Header Auth account - Supabase jousfit.com"
+          },
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "a2c36cf8-674f-49d3-a0b6-0d64b1844725",
+                "leftValue": "={{\n  $json.body.message_type === 'incoming'\n  && $json.body.conversation.messages[0].sender_type === 'Contact'\n}}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "looseTypeValidation": true,
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -480,
+          -512
+        ],
+        "id": "7a0c773e-652b-49dd-ae74-c937f3ddbbcb",
+        "name": "Filtro anti-loop"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "0daf30a9-6b6b-4656-89b1-9a5538b29343",
+                "leftValue": "={{$json.shopify_customer !== null\n&& $json.orders_count !== null\n}}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          2368,
+          64
+        ],
+        "id": "9a6968cc-41f8-46e3-942f-c4881b637655",
+        "name": "¿Shopify ya enriquecido?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "50f3bb7a-e2cf-4914-8a68-060f448c7fb8",
+                "leftValue": "={{\n  $json.stage === 'identity_captured'\n  && $json.last_customer_message\n  && $json.last_customer_message.length > 3\n}}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1984,
+          80
+        ],
+        "id": "0eb01291-008b-4c60-a117-d444d523980e",
+        "name": "¿Identidad completa?"
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "route-master",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -688,
+          -512
+        ],
+        "id": "b8e48ab4-fa19-4261-96f0-5ed3723ce2a5",
+        "name": "Webhook Maestro",
+        "webhookId": "379f4afc-e27c-4e9d-98de-2cbf669f1565"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "4fad2b40-a008-4273-aa72-5e0fb3d1209a",
+                "leftValue": "={{ $json.stage === 'awaiting_order_code' }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1280,
+          48
+        ],
+        "id": "a31835e6-821f-40b6-804a-a4ea9b9a6c31",
+        "name": "¿Awaiting Order Code?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "4fad2b40-a008-4273-aa72-5e0fb3d1209a",
+                "leftValue": "={{ $json.stage === 'order_code_captured' }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          1648,
+          64
+        ],
+        "id": "29a25187-c1d4-44cc-8b65-373c28c8b535",
+        "name": "¿Order Code Captured?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"last_customer_message\": {{ JSON.stringify($('Webhook Maestro').item.json.body.conversation.messages[0].content) }},\n  \"updated_at\": \"{{ $now }}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          80,
+          -640
+        ],
+        "id": "ff044a8f-6022-4895-b5d6-00bfb3d7bd66",
+        "name": "Actualizar contexto - mensaje entrante",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "0daf30a9-6b6b-4656-89b1-9a5538b29343",
+                "leftValue": "={{ $json.stage === 'handoff_humano' }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          944,
+          -80
+        ],
+        "id": "8437d4f6-a4a0-4b55-8e59-a23b3105213f",
+        "name": "Handoff Humano?"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1296,
+          -176
+        ],
+        "id": "686ecb37-6899-46b7-8713-97f8db575c9b",
+        "name": "En espera de Workflow V8 - Handoff Humano"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "qEjUekaoWV7hU1hR",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/qEjUekaoWV7hU1hR",
+            "cachedResultName": "Clasificador - V5"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          2368,
+          288
+        ],
+        "id": "a6efc7fa-af51-4f46-a1bc-8ccfd9762d7b",
+        "name": "Ejecutar V5 - Clasificador IA"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "4fad2b40-a008-4273-aa72-5e0fb3d1209a",
+                "leftValue": "={{\n  /consultar otro pedido|otro pedido|consultar otro|otro/i\n    .test($json.last_customer_message)\n}}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          672,
+          -384
+        ],
+        "id": "15f22b5f-d053-4740-885e-efe56b1c4ea1",
+        "name": "¿Consultar otro pedido?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"order_code\": null,\n  \"order_code_attempts\": 0,\n  \"stage\": \"awaiting_order_code\",\n  \"updated_at\": \"{{ $now }}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          944,
+          -400
+        ],
+        "id": "ab47b2b1-0721-4b41-a13a-a231f59f160a",
+        "name": "Resetear contexto - Supabase",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "4fad2b40-a008-4273-aa72-5e0fb3d1209a",
+                "leftValue": "={{ ['conversation_closed'].includes($json.stage) }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          640,
+          -96
+        ],
+        "id": "16d8ec39-ed6c-45d5-9bb0-a78ee82e06e2",
+        "name": "¿Respuesta ya entregada?"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "CwBysgOk9XOu1q7N",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/CwBysgOk9XOu1q7N",
+            "cachedResultName": "Shopify Lookup - V2"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          2736,
+          80
+        ],
+        "id": "6d9e1187-0837-484c-a02b-45f424f91acb",
+        "name": "Ejecutar V2 - Shopify Lookup"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "¡Claro! 😊\nEnvíame el **número del otro pedido** que deseas consultar.\nEjemplo: **#123456**",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1296,
+          -400
+        ],
+        "id": "af3c863d-a8fa-4051-a036-9eeaca5bc35d",
+        "name": "Construir mensaje de otro pedido -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1632,
+          -400
+        ],
+        "id": "9ca8e7d2-e1b9-4017-b07d-d23b5f72dce3",
+        "name": "Enviar mensaje de nuevo pedido",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "4d4a17cd-93e4-4595-be2c-a6759ad12b3a",
+                "leftValue": "={{ /(^|\\b)(ok|okey|gracias|muchas gracias|perfecto|listo|vale)(\\b|$)/i\n.test(($json.last_customer_message || '').trim())\n}}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          368,
+          -400
+        ],
+        "id": "87f2ba00-0a43-4e5b-8475-1c5273bf977d",
+        "name": "¿Mensaje de cierre amable?"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Prefer",
+                "value": "resolution=merge-duplicates"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"stage\": \"conversation_closed\",\n  \"updated_at\": \"{{ $now }}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          672,
+          -640
+        ],
+        "id": "fccc79cd-adbd-4bab-a53d-f63642a7a7f2",
+        "name": "Actualizar contexto - Cerrar conversación",
+        "credentials": {
+          "httpBearerAuth": {
+            "id": "BzTJ5DgwIoNw4kKL",
+            "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+          },
+          "httpCustomAuth": {
+            "id": "aFfl2laaDfpdIYY3",
+            "name": "Supabase REST Auth - Chatbot Jousfit"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+                "name": "=content",
+                "value": "✨ ¡Con gusto! Si necesitas algo más, aquí estaré 😊 ¡Que tengas un excelente día!",
+                "type": "string"
+              },
+              {
+                "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+                "name": "=message_type",
+                "value": "outgoing",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          944,
+          -640
+        ],
+        "id": "94362034-9fb8-434a-ba3b-634fa104b160",
+        "name": "Construir mensaje de cerrar mensaje -  Chatwoot"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpCustomAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.3,
+        "position": [
+          1280,
+          -640
+        ],
+        "id": "ddfea272-2422-4aba-85d7-75e79d423e0b",
+        "name": "Cerrar mensaje amablemente",
+        "alwaysOutputData": true,
+        "credentials": {
+          "httpCustomAuth": {
+            "id": "wrFTj27YfUi3FDBR",
+            "name": "Chatwoot REST Auth - Jousfit Chatbot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "159cde1b-0511-42df-9399-6d039985acf2",
+                "leftValue": "={{ $json.last_customer_message !== null }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          64,
+          -160
+        ],
+        "id": "8c071c5b-4e73-4adc-b76a-1403c89e12ca",
+        "name": "¿Turno del cliente?"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "NOfJ1NoYRC2o4Gvs",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/NOfJ1NoYRC2o4Gvs",
+            "cachedResultName": "Captura Order Code - V3"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1648,
+          -192
+        ],
+        "id": "b612805b-0c8b-49f7-a5d7-298baa248349",
+        "name": "Ejecutar V3 - Captura Order Code"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "ojVOtXSMrjz5CEXr",
+            "mode": "list",
+            "cachedResultUrl": "/workflow/ojVOtXSMrjz5CEXr",
+            "cachedResultName": "Order Status -  V4"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.3,
+        "position": [
+          1984,
+          -192
+        ],
+        "id": "7828d05a-1505-414f-85e6-74fe720bc173",
+        "name": "Ejecutar V4 - Order Status"
+      }
+    ],
+    "connections": {
+      "Normalizar payload Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contexto - mensaje entrante",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Obtener contexto - Supabase": {
+        "main": [
+          [
+            {
+              "node": "¿Turno del cliente?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Filtro anti-loop": {
+        "main": [
+          [
+            {
+              "node": "Normalizar payload Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Muere aquí",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Shopify ya enriquecido?": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Ejecutar V2 - Shopify Lookup",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Identidad completa?": {
+        "main": [
+          [
+            {
+              "node": "¿Shopify ya enriquecido?",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ejecutar V5 - Clasificador IA",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Webhook Maestro": {
+        "main": [
+          [
+            {
+              "node": "Filtro anti-loop",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Awaiting Order Code?": {
+        "main": [
+          [
+            {
+              "node": "Ejecutar V3 - Captura Order Code",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "¿Order Code Captured?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Order Code Captured?": {
+        "main": [
+          [
+            {
+              "node": "Ejecutar V4 - Order Status",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "¿Identidad completa?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contexto - mensaje entrante": {
+        "main": [
+          [
+            {
+              "node": "Obtener contexto - Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Handoff Humano?": {
+        "main": [
+          [
+            {
+              "node": "En espera de Workflow V8 - Handoff Humano",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "¿Awaiting Order Code?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Consultar otro pedido?": {
+        "main": [
+          [
+            {
+              "node": "Resetear contexto - Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "¿Respuesta ya entregada?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Resetear contexto - Supabase": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje de otro pedido -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Respuesta ya entregada?": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Handoff Humano?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje de otro pedido -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Enviar mensaje de nuevo pedido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Mensaje de cierre amable?": {
+        "main": [
+          [
+            {
+              "node": "Actualizar contexto - Cerrar conversación",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "¿Consultar otro pedido?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Construir mensaje de cerrar mensaje -  Chatwoot": {
+        "main": [
+          [
+            {
+              "node": "Cerrar mensaje amablemente",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Actualizar contexto - Cerrar conversación": {
+        "main": [
+          [
+            {
+              "node": "Construir mensaje de cerrar mensaje -  Chatwoot",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "¿Turno del cliente?": {
+        "main": [
+          [
+            {
+              "node": "¿Mensaje de cierre amable?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Ejecutar V5 - Clasificador IA": {
+        "main": [
+          []
+        ]
+      }
+    },
+    "authors": "Kevin Quiroz",
+    "name": "Version d9aca257",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "d9aca257-f6f8-4385-ac91-222d2878e413",
+  "connections": {
+    "Normalizar payload Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto - mensaje entrante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener contexto - Supabase": {
+      "main": [
+        [
+          {
+            "node": "¿Turno del cliente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtro anti-loop": {
+      "main": [
+        [
+          {
+            "node": "Normalizar payload Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Muere aquí",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Shopify ya enriquecido?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Ejecutar V2 - Shopify Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Identidad completa?": {
+      "main": [
+        [
+          {
+            "node": "¿Shopify ya enriquecido?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ejecutar V5 - Clasificador IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Maestro": {
+      "main": [
+        [
+          {
+            "node": "Filtro anti-loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Awaiting Order Code?": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar V3 - Captura Order Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Order Code Captured?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Order Code Captured?": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar V4 - Order Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Identidad completa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto - mensaje entrante": {
+      "main": [
+        [
+          {
+            "node": "Obtener contexto - Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handoff Humano?": {
+      "main": [
+        [
+          {
+            "node": "En espera de Workflow V8 - Handoff Humano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Awaiting Order Code?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Consultar otro pedido?": {
+      "main": [
+        [
+          {
+            "node": "Resetear contexto - Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Respuesta ya entregada?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resetear contexto - Supabase": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje de otro pedido -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Respuesta ya entregada?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Handoff Humano?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje de otro pedido -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Enviar mensaje de nuevo pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Mensaje de cierre amable?": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contexto - Cerrar conversación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Consultar otro pedido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir mensaje de cerrar mensaje -  Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Cerrar mensaje amablemente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contexto - Cerrar conversación": {
+      "main": [
+        [
+          {
+            "node": "Construir mensaje de cerrar mensaje -  Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Turno del cliente?": {
+      "main": [
+        [
+          {
+            "node": "¿Mensaje de cierre amable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar V5 - Clasificador IA": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "createdAt": "2026-01-08T17:02:36.491Z",
+  "id": "cJ4KluDdj0cny0Z3",
+  "isArchived": false,
+  "meta": null,
+  "name": "Ruteador Maestro Conversacional - V1",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -400
+      ],
+      "id": "8c1d6ae9-aa89-47c9-8a30-3a5883c6106b",
+      "name": "Muere aquí"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68f14a79-9b5c-4350-9c95-d414d1be09d3",
+              "name": "conversation_id",
+              "value": "={{ $json.body.conversation.id }}",
+              "type": "number"
+            },
+            {
+              "id": "fe2cbea4-b982-4f13-8cd6-e0731b3b8388",
+              "name": "last_user_message",
+              "value": "={{ $json.body.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        -640
+      ],
+      "id": "b6788559-1d5f-46ad-9b2e-d5f44851f118",
+      "name": "Normalizar payload Chatwoot"
+    },
+    {
+      "parameters": {
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "conversation_id",
+              "value": "=eq.{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        48,
+        -400
+      ],
+      "id": "3f5c3d4e-953e-44a2-979f-020b2711d2c0",
+      "name": "Obtener contexto - Supabase",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        },
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a2c36cf8-674f-49d3-a0b6-0d64b1844725",
+              "leftValue": "={{\n  $json.body.message_type === 'incoming'\n  && $json.body.conversation.messages[0].sender_type === 'Contact'\n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -480,
+        -512
+      ],
+      "id": "7a0c773e-652b-49dd-ae74-c937f3ddbbcb",
+      "name": "Filtro anti-loop"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0daf30a9-6b6b-4656-89b1-9a5538b29343",
+              "leftValue": "={{$json.shopify_customer !== null\n&& $json.orders_count !== null\n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2368,
+        64
+      ],
+      "id": "9a6968cc-41f8-46e3-942f-c4881b637655",
+      "name": "¿Shopify ya enriquecido?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "50f3bb7a-e2cf-4914-8a68-060f448c7fb8",
+              "leftValue": "={{\n  $json.stage === 'identity_captured'\n  && $json.last_customer_message\n  && $json.last_customer_message.length > 3\n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1984,
+        80
+      ],
+      "id": "0eb01291-008b-4c60-a117-d444d523980e",
+      "name": "¿Identidad completa?"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "route-master",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -688,
+        -512
+      ],
+      "id": "b8e48ab4-fa19-4261-96f0-5ed3723ce2a5",
+      "name": "Webhook Maestro",
+      "webhookId": "379f4afc-e27c-4e9d-98de-2cbf669f1565"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4fad2b40-a008-4273-aa72-5e0fb3d1209a",
+              "leftValue": "={{ $json.stage === 'awaiting_order_code' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1280,
+        48
+      ],
+      "id": "a31835e6-821f-40b6-804a-a4ea9b9a6c31",
+      "name": "¿Awaiting Order Code?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4fad2b40-a008-4273-aa72-5e0fb3d1209a",
+              "leftValue": "={{ $json.stage === 'order_code_captured' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1648,
+        64
+      ],
+      "id": "29a25187-c1d4-44cc-8b65-373c28c8b535",
+      "name": "¿Order Code Captured?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"last_customer_message\": {{ JSON.stringify($('Webhook Maestro').item.json.body.conversation.messages[0].content) }},\n  \"updated_at\": \"{{ $now }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        80,
+        -640
+      ],
+      "id": "ff044a8f-6022-4895-b5d6-00bfb3d7bd66",
+      "name": "Actualizar contexto - mensaje entrante",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0daf30a9-6b6b-4656-89b1-9a5538b29343",
+              "leftValue": "={{ $json.stage === 'handoff_humano' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        944,
+        -80
+      ],
+      "id": "8437d4f6-a4a0-4b55-8e59-a23b3105213f",
+      "name": "Handoff Humano?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        -176
+      ],
+      "id": "686ecb37-6899-46b7-8713-97f8db575c9b",
+      "name": "En espera de Workflow V8 - Handoff Humano"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qEjUekaoWV7hU1hR",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/qEjUekaoWV7hU1hR",
+          "cachedResultName": "Clasificador - V5"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2368,
+        288
+      ],
+      "id": "a6efc7fa-af51-4f46-a1bc-8ccfd9762d7b",
+      "name": "Ejecutar V5 - Clasificador IA"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4fad2b40-a008-4273-aa72-5e0fb3d1209a",
+              "leftValue": "={{\n  /consultar otro pedido|otro pedido|consultar otro|otro/i\n    .test($json.last_customer_message)\n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -384
+      ],
+      "id": "15f22b5f-d053-4740-885e-efe56b1c4ea1",
+      "name": "¿Consultar otro pedido?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"order_code\": null,\n  \"order_code_attempts\": 0,\n  \"stage\": \"awaiting_order_code\",\n  \"updated_at\": \"{{ $now }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        944,
+        -400
+      ],
+      "id": "ab47b2b1-0721-4b41-a13a-a231f59f160a",
+      "name": "Resetear contexto - Supabase",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4fad2b40-a008-4273-aa72-5e0fb3d1209a",
+              "leftValue": "={{ ['conversation_closed'].includes($json.stage) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        -96
+      ],
+      "id": "16d8ec39-ed6c-45d5-9bb0-a78ee82e06e2",
+      "name": "¿Respuesta ya entregada?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "CwBysgOk9XOu1q7N",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/CwBysgOk9XOu1q7N",
+          "cachedResultName": "Shopify Lookup - V2"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2736,
+        80
+      ],
+      "id": "6d9e1187-0837-484c-a02b-45f424f91acb",
+      "name": "Ejecutar V2 - Shopify Lookup"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "¡Claro! 😊\nEnvíame el **número del otro pedido** que deseas consultar.\nEjemplo: **#123456**",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        -400
+      ],
+      "id": "af3c863d-a8fa-4051-a036-9eeaca5bc35d",
+      "name": "Construir mensaje de otro pedido -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1632,
+        -400
+      ],
+      "id": "9ca8e7d2-e1b9-4017-b07d-d23b5f72dce3",
+      "name": "Enviar mensaje de nuevo pedido",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4d4a17cd-93e4-4595-be2c-a6759ad12b3a",
+              "leftValue": "={{ /(^|\\b)(ok|okey|gracias|muchas gracias|perfecto|listo|vale)(\\b|$)/i\n.test(($json.last_customer_message || '').trim())\n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        368,
+        -400
+      ],
+      "id": "87f2ba00-0a43-4e5b-8475-1c5273bf977d",
+      "name": "¿Mensaje de cierre amable?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $json.conversation_id }},\n  \"stage\": \"conversation_closed\",\n  \"updated_at\": \"{{ $now }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        672,
+        -640
+      ],
+      "id": "fccc79cd-adbd-4bab-a53d-f63642a7a7f2",
+      "name": "Actualizar contexto - Cerrar conversación",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "BzTJ5DgwIoNw4kKL",
+          "name": "Bearer Auth account - Supabase anon Key jousfit.com"
+        },
+        "httpCustomAuth": {
+          "id": "aFfl2laaDfpdIYY3",
+          "name": "Supabase REST Auth - Chatbot Jousfit"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3d08865-f4aa-4195-9044-cef4e597db29",
+              "name": "=content",
+              "value": "✨ ¡Con gusto! Si necesitas algo más, aquí estaré 😊 ¡Que tengas un excelente día!",
+              "type": "string"
+            },
+            {
+              "id": "1f898cf8-53a6-4176-972b-08491796ef73",
+              "name": "=message_type",
+              "value": "outgoing",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        -640
+      ],
+      "id": "94362034-9fb8-434a-ba3b-634fa104b160",
+      "name": "Construir mensaje de cerrar mensaje -  Chatwoot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://jousfit-chatwoot.q3fy2l.easypanel.host/api/v1/accounts/1/conversations/{{ $('Normalizar payload Chatwoot').item.json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {{ JSON.stringify($json.content) }},\n  \"message_type\": {{ JSON.stringify($json.message_type) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1280,
+        -640
+      ],
+      "id": "ddfea272-2422-4aba-85d7-75e79d423e0b",
+      "name": "Cerrar mensaje amablemente",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "wrFTj27YfUi3FDBR",
+          "name": "Chatwoot REST Auth - Jousfit Chatbot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "159cde1b-0511-42df-9399-6d039985acf2",
+              "leftValue": "={{ $json.last_customer_message !== null }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        64,
+        -160
+      ],
+      "id": "8c071c5b-4e73-4adc-b76a-1403c89e12ca",
+      "name": "¿Turno del cliente?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "NOfJ1NoYRC2o4Gvs",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/NOfJ1NoYRC2o4Gvs",
+          "cachedResultName": "Captura Order Code - V3"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1648,
+        -192
+      ],
+      "id": "b612805b-0c8b-49f7-a5d7-298baa248349",
+      "name": "Ejecutar V3 - Captura Order Code"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ojVOtXSMrjz5CEXr",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ojVOtXSMrjz5CEXr",
+          "cachedResultName": "Order Status -  V4"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1984,
+        -192
+      ],
+      "id": "7828d05a-1505-414f-85e6-74fe720bc173",
+      "name": "Ejecutar V4 - Order Status"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-08T17:02:36.493Z",
+      "createdAt": "2026-01-08T17:02:36.493Z",
+      "role": "workflow:owner",
+      "workflowId": "cJ4KluDdj0cny0Z3",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [
+    {
+      "updatedAt": "2026-01-09T21:44:19.955Z",
+      "createdAt": "2026-01-09T21:44:19.955Z",
+      "id": "lmZByUKTYG5dJtB1",
+      "name": "v1"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-15T19:07:21.318Z",
+  "versionId": "d9aca257-f6f8-4385-ac91-222d2878e413"
+}
