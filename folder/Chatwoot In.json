@@ -1,0 +1,861 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {
+    "Chatwoot Inbound": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Mapeo de variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapeo de variables": {
+      "main": [
+        [
+          {
+            "node": "GET precisión",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Autosend Dinámico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Envíar mensaje": {
+      "main": [
+        [
+          {
+            "node": "Supabase — Log (assistant)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar nota interna": {
+      "main": [
+        [
+          {
+            "node": "Supabase — Log (note)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar mensaje o nota": {
+      "main": [
+        [
+          {
+            "node": "IA Envíar mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agregar nota interna",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model Parser": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Upsert Context": {
+      "main": [
+        [
+          {
+            "node": "Enviar mensaje o nota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Log (user)": {
+      "main": [
+        [
+          {
+            "node": "Obtener conversación Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener conversación Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Enriquecer datos de conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase — Log (assistant)": {
+      "main": [
+        [
+          {
+            "node": "Supabase — Upsert Training Example",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase — Log (note)": {
+      "main": [
+        [
+          {
+            "node": "Supabase — Upsert Training Example",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enriquecer datos de conversación": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Upsert Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase — Upsert Training Example": {
+      "main": [
+        [
+          {
+            "node": "Agregar etiquetas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET precisión": {
+      "main": [
+        [
+          {
+            "node": "Autosend Dinámico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Autosend Dinámico": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Log (user)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-12-17T03:16:27.953Z",
+  "id": "tpBIoGtETxbkEDkx",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Chatwoot In",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatwoot-in",
+        "options": {
+          "responseData": "{\"status\":\"ok\",\"message\":\"Webhook recibido\"}"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "64f980d9-8471-4b0b-abf9-c69348bfe7fb",
+      "name": "Chatwoot Inbound",
+      "webhookId": "4342779d-a1be-4ef1-8aa0-3d2f6aaa9e05"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        224
+      ],
+      "id": "a45b1511-6df9-4e17-a438-5465a44df8ba",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Ac8tz0tDRVIEbRMv",
+          "name": "OpenAi account - soporte@valtmx.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"intent_estado_pedido\",\n        \"intent_envio_problema\",\n        \"intent_cambio_cancelacion\",\n        \"intent_devolucion\",\n        \"intent_reembolso\",\n        \"intent_pago\",\n        \"intent_producto_info\",\n        \"intent_programa_digital\",\n        \"intent_mayoristas\",\n        \"intent_soporte_web\",\n        \"intent_hablar_persona\",\n        \"intent_otros\"\n      ]\n    },\n    \"confidence\": {\n      \"type\": \"number\",\n      \"minimum\": 0,\n      \"maximum\": 1\n    },\n    \"entities\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"email\": {\n          \"type\": [\"string\", \"null\"],\n          \"format\": \"email\"\n        },\n        \"order\": {\n          \"type\": [\"string\", \"null\"],\n          \"pattern\": \"^\\\\d{6}$\"\n        },\n        \"postal_code\": {\n          \"type\": [\"string\", \"null\"],\n          \"pattern\": \"^\\\\d{5}$\"\n        }\n      }\n    },\n    \"agent_note\": {\n      \"type\": \"string\"\n    },\n    \"customer_reply\": {\n      \"type\": \"string\"\n    },\n    \"autosend\": {\n      \"type\": \"string\",\n      \"enum\": [\"true\", \"false\"],\n      \"description\": \"Indica si la respuesta debe enviarse automáticamente ('true') o solo dejar nota interna ('false').\"\n    }\n  },\n  \"required\": [\n    \"intent\",\n    \"confidence\",\n    \"agent_note\",\n    \"customer_reply\",\n    \"autosend\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        224
+      ],
+      "id": "66a892e4-9a90-4784-9784-8ce7d54e79e5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body?.messages?.[0]?.content || $json.body?.conversation?.messages?.[0]?.content }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Eres un asistente especializado en Atención al Cliente de Jousfit (e-commerce de programas digitales y productos de bienestar). Tu objetivo es:\n1) Clasificar el mensaje del cliente en una INTENCIÓN (intent) de la lista permitida.\n2) Estimar un nivel de confianza (confidence ∈ [0,1]).\n3) Extraer ENTIDADES si aparecen: email, order (exactamente 6 dígitos), postal_code (5 dígitos MX).\n4) Generar:\n   a) agent_note (resumen interno + siguiente paso sugerido para el agente humano).\n   b) customer_reply (mensaje empático, breve, profesional para el cliente).\n5) Definir autosend (\"true\"/\"false\") siguiendo las reglas de abajo.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nINTENTS PERMITIDOS (usa exactamente estos literales):\n- intent_estado_pedido         → Quiere estado/seguimiento de su pedido.\n- intent_envio_problema        → Retraso, no llegó, paquetería, guía, extravío.\n- intent_cambio_cancelacion    → Solicita cambio/cancelación antes de que se envíe.\n- intent_devolucion            → Desea devolver después de recibir.\n- intent_reembolso             → Solicita o confirma reembolso.\n- intent_pago                  → Problemas de cobro, tarjeta, método de pago.\n- intent_producto_info         → Dudas de uso, dosis, compatibilidad, seguridad.\n- intent_programa_digital      → No recibió/ no puede acceder a programas digitales.\n- intent_mayoristas            → Compra al mayoreo, distribución, partnership.\n- intent_soporte_web           → Error web, cupón, login, carrito, checkout.\n- intent_hablar_persona        → Pide atención humana directa.\n- intent_otros                 → No encaja en las anteriores.\n\nSi el mensaje mapea a varias, elige la MÁS ÚTIL para accionar soporte.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nREGLAS DE EXTRACCIÓN (ENTITIES)\n- email: detecta formatos tipo usuario@dominio (si hay varios, toma el más probable del cliente).\n- order: 6 dígitos consecutivos exactos (regex sugerida: (?<!\\d)(\\d{6})(?!\\d)).\n  No confundas con teléfonos, códigos de tarjeta, etc.\n- postal_code: 5 dígitos (MX) (regex sugerida: (?<!\\d)(\\d{5})(?!\\d)).\nSi no existe alguno → usa null (no string vacío).\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nTONO Y ESTILO\n- Español neutro, cercano y profesional. Empático y claro. Frases cortas.\n- No prometas tiempos específicos si no aparecen en el mensaje; ofrece investigar/acompañar.\n- No cierres el caso ni escales automáticamente (solo sugiere en agent_note).\n- Evita lenguaje técnico hacia el cliente; usa términos simples.\n- No inventes datos (números de orden, montos, políticas). Si faltan, pide el dato mínimo.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCONFIDENCE\n- Devuelve un número entre 0 y 1 con dos decimales (ej. 0.92) según seguridad de la clasificación.\n- Señales que aumentan confianza: palabras clave claras, presencia de # de pedido/correo, mención explícita del tema.\n- Señales que reducen confianza: ambigüedad, múltiples temas, ironía o ruido.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nAUTOSEND (\"true\"/\"false\") – Política\nPon \"true\" SOLO si:\n- La intención es clara y pertenece a: \n  intent_estado_pedido, intent_envio_problema, intent_pago, intent_programa_digital,\n  intent_producto_info, intent_cambio_cancelacion, intent_devolucion, intent_reembolso, intent_mayoristas\n  Y el texto NO es ambiguo.\nEn cualquier escenario ambiguo, sensible o que pida humano directo → \"false\".\nSi la intención es intent_hablar_persona o intent_otros → \"false\".\n\nNota: El sistema downstream podría aplicar reglas adicionales con el umbral 0.7; tú sigue esta política aquí.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATO DE SALIDA (OBLIGATORIO)\nDevuelve EXCLUSIVAMENTE un JSON con esta estructura y llaves EXACTAS:\n\n{\n  \"intent\": \"intent_estado_pedido\",\n  \"confidence\": 0.00,\n  \"entities\": {\n    \"email\": null,\n    \"order\": null,\n    \"postal_code\": null\n  },\n  \"agent_note\": \"Texto breve para agente humano.\",\n  \"customer_reply\": \"Texto breve y empático para el cliente.\",\n  \"autosend\": \"true\"\n}\n\n- \"intent\": uno de los 12 valores listados.\n- \"confidence\": número entre 0 y 1 con dos decimales.\n- \"entities.*\": string o null.\n- \"agent_note\": 1–2 oraciones; incluye siguiente paso claro (qué pedir o verificar).\n- \"customer_reply\": 1–3 oraciones; pide solo lo mínimo necesario (p. ej., # de pedido o email).\n- \"autosend\": string \"true\" o \"false\" (no boolean).\n\nNO devuelvas ningún texto adicional antes o después del JSON.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nHEURÍSTICAS ÚTILES\n- Si menciona “no me llegó”, “retraso”, “paquetería”, “guía” → intent_envio_problema.\n- “Quiero cancelar”, “cambiar talla/dirección”, “me equivoqué” → intent_cambio_cancelacion.\n- “Cómo usar”, “contraindicaciones”, “cuánto tomar” → intent_producto_info.\n- “No recibí mi programa”, “no puedo acceder”, “link caído” → intent_programa_digital.\n- “Cobro duplicado”, “falló mi tarjeta”, “no procesa pago” → intent_pago.\n- “Quiero devolver”, “no me quedó” → intent_devolucion.\n- “Quiero reembolso” → intent_reembolso.\n- “Mayorista”, “distribuidor”, “volumen” → intent_mayoristas.\n- “Quiero hablar con alguien”, “humano” → intent_hablar_persona.\n- Si pide estado de pedido y hay # de 6 dígitos → intent_estado_pedido (no envío_problema, a menos que explícitamente reporte retraso).\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFEW-SHOT (EJEMPLOS)\n\n[1]\nUsuario: \"Hola, quiero saber el estado de mi pedido 123456\"\n{\n  \"intent\": \"intent_estado_pedido\",\n  \"confidence\": 0.96,\n  \"entities\": { \"email\": null, \"order\": \"123456\", \"postal_code\": null },\n  \"agent_note\": \"Cliente solicita estatus del pedido #123456. Siguiente paso: consultar sistema/logística y devolver ETA.\",\n  \"customer_reply\": \"¡Gracias por escribirnos! Con gusto verifico el estado de tu pedido 123456. Estoy consultando y te comparto la actualización en breve.\",\n  \"autosend\": \"true\"\n}\n\n[2]\nUsuario: \"No me ha llegado mi paquete, ya pasó la fecha\"\n{\n  \"intent\": \"intent_envio_problema\",\n  \"confidence\": 0.90,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Reporta retraso en envío. Pedir # de pedido o correo para localizar el caso.\",\n  \"customer_reply\": \"Lamentamos el retraso. ¿Podrías compartirnos tu número de pedido de 6 dígitos o el correo de compra para revisarlo de inmediato?\",\n  \"autosend\": \"true\"\n}\n\n[3]\nUsuario: \"Me equivoqué de producto, ¿pueden cambiarlo antes del envío?\"\n{\n  \"intent\": \"intent_cambio_cancelacion\",\n  \"confidence\": 0.88,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Solicita cambio previo al envío. Pedir # de pedido para validar estado y aplicar cambio si procede.\",\n  \"customer_reply\": \"¡Claro! Con gusto te apoyamos con el cambio. ¿Nos compartes tu número de pedido de 6 dígitos para revisarlo?\",\n  \"autosend\": \"true\"\n}\n\n[4]\nUsuario: \"Quiero devolver el producto, ¿cómo lo hago?\"\n{\n  \"intent\": \"intent_devolucion\",\n  \"confidence\": 0.91,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Solicita proceso de devolución. Indicar pasos generales y pedir # de pedido.\",\n  \"customer_reply\": \"Podemos apoyarte con la devolución. ¿Nos compartes tu número de pedido (6 dígitos) o el correo de compra para indicarte los pasos?\",\n  \"autosend\": \"true\"\n}\n\n[5]\nUsuario: \"Quiero el reembolso, ya no me interesa\"\n{\n  \"intent\": \"intent_reembolso\",\n  \"confidence\": 0.87,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Solicita reembolso. Validar política y estado del pedido; pedir # de pedido.\",\n  \"customer_reply\": \"Entiendo. Para ayudarte con el reembolso, ¿podrías compartir tu número de pedido de 6 dígitos o el correo de compra?\",\n  \"autosend\": \"true\"\n}\n\n[6]\nUsuario: \"Mi tarjeta fue rechazada y no puedo pagar\"\n{\n  \"intent\": \"intent_pago\",\n  \"confidence\": 0.92,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Problema de cobro. Sugerir intentar otro método y pedir correo si requiere seguimiento.\",\n  \"customer_reply\": \"Gracias por avisarnos. ¿Podrías intentar nuevamente o con otro método de pago? Si persiste, compártenos el correo de compra para ayudarte.\",\n  \"autosend\": \"true\"\n}\n\n[7]\nUsuario: \"¿Cómo se usa el suplemento? ¿Cuántas cápsulas al día?\"\n{\n  \"intent\": \"intent_producto_info\",\n  \"confidence\": 0.85,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Consulta de uso/seguridad. Brindar guía general y sugerir revisar indicaciones oficiales; evitar afirmaciones médicas.\",\n  \"customer_reply\": \"Con gusto te orientamos. Las recomendaciones pueden variar; te sugerimos revisar la etiqueta del producto y, ante condiciones médicas, consultar a un profesional. Si nos dices qué producto es, te compartimos indicaciones generales.\",\n  \"autosend\": \"true\"\n}\n\n[8]\nUsuario: \"Compré un programa digital y no me llegó el acceso\"\n{\n  \"intent\": \"intent_programa_digital\",\n  \"confidence\": 0.93,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"No recibió acceso digital. Sugerir revisar SPAM y pedir correo de compra si no aparece.\",\n  \"customer_reply\": \"Gracias por escribirnos. Revisa por favor tu bandeja de entrada y SPAM. Si no está, compártenos el correo de compra para reenviar el acceso.\",\n  \"autosend\": \"true\"\n}\n\n[9]\nUsuario: \"¿Venden por mayoreo? Quiero distribuir en mi región\"\n{\n  \"intent\": \"intent_mayoristas\",\n  \"confidence\": 0.90,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Interés en mayoreo/distribución. Pedir datos de contacto para derivar a ventas.\",\n  \"customer_reply\": \"¡Qué gusto tu interés! ¿Nos compartes tu correo y zona para conectarte con el equipo que ve mayoreo?\",\n  \"autosend\": \"true\"\n}\n\n[10]\nUsuario: \"El cupón no funciona al pagar\"\n{\n  \"intent\": \"intent_soporte_web\",\n  \"confidence\": 0.86,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Falla en checkout/cupón. Pedir captura o código de cupón para verificar.\",\n  \"customer_reply\": \"Gracias por avisarnos. ¿Podrías compartir el código del cupón y, si es posible, una captura del mensaje de error para revisarlo?\",\n  \"autosend\": \"true\"\n}\n\n[11]\nUsuario: \"¿Me puede atender una persona?\"\n{\n  \"intent\": \"intent_hablar_persona\",\n  \"confidence\": 0.98,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Solicita atención humana directa. Indicar en nota que se asigne.\",\n  \"customer_reply\": \"Con gusto te canalizamos con un asesor. ¿Nos compartes tu correo de contacto o número de pedido para ubicar tu caso?\",\n  \"autosend\": \"false\"\n}\n\n[12]\nUsuario: \"Hola\"\n{\n  \"intent\": \"intent_otros\",\n  \"confidence\": 0.40,\n  \"entities\": { \"email\": null, \"order\": null, \"postal_code\": null },\n  \"agent_note\": \"Saludo sin contexto. Sugerir preguntar necesidad y, de ser soporte de pedido, pedir # o correo.\",\n  \"customer_reply\": \"¡Hola! ¿En qué podemos apoyarte hoy? Si es sobre un pedido, compártenos tu número de 6 dígitos o el correo de compra.\",\n  \"autosend\": \"false\"\n}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nINSTRUCCIÓN FINAL\nDevuelve ÚNICAMENTE el JSON con las llaves indicadas, sin texto adicional."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        256,
+        0
+      ],
+      "id": "cf550f75-3ff4-4ae6-af75-b0f247b7060a",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6192a484-e6e5-40ee-ac02-3590a13cdce7",
+              "name": "autosend",
+              "value": "={{$json.output.autosend}}",
+              "type": "boolean"
+            },
+            {
+              "id": "8b601874-4eb6-4625-afbf-b703748bc340",
+              "name": "confidence",
+              "value": "={{ $json.output.confidence }}",
+              "type": "number"
+            },
+            {
+              "id": "e0faf1b8-86b5-49fe-8349-8fd1f34593b7",
+              "name": "intent",
+              "value": "={{ $json.output.intent }}",
+              "type": "string"
+            },
+            {
+              "id": "bd222944-b722-488c-bd52-502e83cfa789",
+              "name": "customer_reply",
+              "value": "={{ $json.output.customer_reply }}",
+              "type": "string"
+            },
+            {
+              "id": "6eb31b94-f494-4c5e-b6fd-6db03f52e4ac",
+              "name": "conversation_id",
+              "value": "={{ $('Chatwoot Inbound').item.json.body.messages[0].conversation_id }}",
+              "type": "number"
+            },
+            {
+              "id": "822182fc-ad3d-4438-b0a0-0272c60a9e52",
+              "name": "user_message",
+              "value": "={{ $('Chatwoot Inbound').item.json.body.messages[0].content }}",
+              "type": "string"
+            },
+            {
+              "id": "313b6e72-1c6f-458f-900c-a5edd3bd2a68",
+              "name": "email",
+              "value": "={{ $json.output.entities.email }}",
+              "type": "string"
+            },
+            {
+              "id": "3c3704b3-8a6f-467b-99ec-def11da42bac",
+              "name": "entities.order",
+              "value": "={{ $json.output.entities.order }}",
+              "type": "string"
+            },
+            {
+              "id": "5134a817-ce3c-48d9-968d-4f5e7cc86a67",
+              "name": "postal_code",
+              "value": "={{ $json.output.entities.postal_code }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        0
+      ],
+      "id": "3131ba38-ed8c-4e44-b9c7-0ec6aa3e9d51",
+      "name": "Mapeo de variables"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://n8n-jousfit-chatwoot.z5cvat.easypanel.host/api/v1/accounts/1/conversations/{{ $json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"{{ $('Autosend Dinámico').item.json.customer_reply }}\",\n  \"message_type\": \"outgoing\",\n  \"private\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1600,
+        320
+      ],
+      "id": "598d05ba-61d5-4737-9d3a-39cee9495c38",
+      "name": "IA Envíar mensaje",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "L58LBR9E6dmzGUWX",
+          "name": "Header Auth account - API Token Chatwoot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://n8n-jousfit-chatwoot.z5cvat.easypanel.host/api/v1/accounts/1/conversations/{{ $json.conversation_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"🧠 *Nota del asistente:* Posible intención: {{ $('Mapeo de variables').item.json.intent }} (confianza: {{ $('Mapeo de variables').item.json.confidence }}). Requiere revisión antes de responder.\",\n  \"message_type\": \"outgoing\",\n  \"private\": true\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1584,
+        544
+      ],
+      "id": "5c349edd-19fe-4b32-84d1-d470d279d109",
+      "name": "Agregar nota interna",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "L58LBR9E6dmzGUWX",
+          "name": "Header Auth account - API Token Chatwoot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://n8n-jousfit-chatwoot.z5cvat.easypanel.host/api/v1/accounts/1/conversations/{{ $('Mapeo de variables').item.json.conversation_id }}/labels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"labels\": [\n    \"{{ $('Mapeo de variables').item.json.intent }}\"\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2352,
+        432
+      ],
+      "id": "f929d01d-7310-4555-876c-c2f8e33c089d",
+      "name": "Agregar etiquetas",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "L58LBR9E6dmzGUWX",
+          "name": "Header Auth account - API Token Chatwoot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.autosend }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "09948f94-f4b3-4477-9cd8-8622bda0aafe"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Mensaje"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3e510879-3806-4a38-97d7-72e0e75b3166",
+                    "leftValue": "={{ $json.autosend }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Nota"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1344,
+        432
+      ],
+      "id": "4624701d-7f04-480b-a019-e82ea0f68c62",
+      "name": "Enviar mensaje o nota"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        432
+      ],
+      "id": "ad4a2d8b-2338-4157-8701-0819c5eb5aff",
+      "name": "OpenAI Chat Model Parser",
+      "credentials": {
+        "openAiApi": {
+          "id": "Ac8tz0tDRVIEbRMv",
+          "name": "OpenAi account - soporte@valtmx.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/conversation_context?on_conflict=conversation_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Mapeo de variables').item.json.conversation_id ?? $json.id ?? $json.messages?.[0]?.conversation_id ?? \"null\" }},\n  \"contact_id\": {{ $json.contact_id ?? \"null\" }},\n  \"email\": {{ $json.email ? JSON.stringify($json.email) : \"null\" }},\n  \"name\": {{ $json.name ? JSON.stringify($json.name) : \"null\" }},\n  \"order_code\": {{ $('Mapeo de variables').item.json.entities?.order ? JSON.stringify($('Mapeo de variables').item.json.entities.order) : \"null\" }},\n  \"postal_code\": {{ $('Mapeo de variables').item.json.entities?.postal_code ? JSON.stringify($('Mapeo de variables').item.json.entities.postal_code) : \"null\" }},\n  \"intent\": {{ $('Mapeo de variables').item.json.intent ? JSON.stringify($('Mapeo de variables').item.json.intent) : \"null\" }},\n  \"autosend\": {{ $('Supabase - Log (user)').item.json.data.autosend }},\n  \"confidence\": {{ Number($('Supabase - Log (user)').item.json.data.confidence ?? 0) }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1120,
+        432
+      ],
+      "id": "4be60cf0-d67d-401b-bb64-8a781ff17591",
+      "name": "Supabase - Upsert Context",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/message_log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": \"{{ $('Mapeo de variables').item.json.conversation_id }}\",\n  \"role\": \"user\",\n  \"content\": \"{{ $('Mapeo de variables').item.json.user_message }}\",\n  \"data\": {\n    \"intent\": \"{{ $('Mapeo de variables').item.json.intent || null }}\",\n    \"confidence\": \"{{ $('Mapeo de variables').item.json.confidence || null }}\",\n    \"autosend\": {{ $json.autosend }}\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1568,
+        112
+      ],
+      "id": "852373aa-ae6c-43fd-a3ff-83ce69d745d4",
+      "name": "Supabase - Log (user)",
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://n8n-jousfit-chatwoot.z5cvat.easypanel.host/api/v1/accounts/1/conversations/{{ $json.conversation_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        704,
+        432
+      ],
+      "id": "d2c524de-b9bf-45d0-8e99-0dc67b8f8b10",
+      "name": "Obtener conversación Chatwoot",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "L58LBR9E6dmzGUWX",
+          "name": "Header Auth account - API Token Chatwoot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/message_log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": \"{{ $json.conversation_id }}\",\n  \"role\": \"assistant\",\n  \"content\": \"{{ $('Autosend Dinámico').item.json.customer_reply || '' }}\",\n  \"data\": {\n    \"intent\": \"{{ $('Mapeo de variables').item.json.intent || null }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1808,
+        320
+      ],
+      "id": "b36ea9db-f47f-4546-adce-c58bbc3959bc",
+      "name": "Supabase — Log (assistant)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/message_log",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": \"{{ $json.conversation_id }}\",\n  \"role\": \"note\",\n  \"content\": \"{{ $('Agregar nota interna').item.json.body?.content || '' }}\",\n  \"data\": {\n    \"intent\": \"{{ $('Mapeo de variables').item.json.intent || null }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1808,
+        544
+      ],
+      "id": "c54170fa-971e-4a84-b4aa-65ee62490d1b",
+      "name": "Supabase — Log (note)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $input.first().json;   // lo que venía del nodo anterior\nconst conv = $json;                 // respuesta del GET de Chatwoot\n\nreturn [{\n  json: {\n    ...prev,\n    email: conv?.meta?.sender?.email ?? prev.email ?? null,\n    name: conv?.meta?.sender?.name ?? prev.name ?? null,\n    contact_id: conv?.meta?.sender?.id ?? prev.contact_id ?? null\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        432
+      ],
+      "id": "7079b282-1b67-4ce9-ad29-ee014277ffdb",
+      "name": "Enriquecer datos de conversación"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/training_examples",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"conversation_id\": {{ $('Mapeo de variables').item.json.conversation_id }},\n  \"user_message\": {{ JSON.stringify($('Mapeo de variables').item.json.user_message) }},\n  \"ai_reply\": {{ JSON.stringify($('Mapeo de variables').item.json.customer_reply) }},\n  \"detected_intent\": {{ JSON.stringify($('Mapeo de variables').item.json.intent) }},\n  \"confidence\": {{ $('Mapeo de variables').item.json.confidence }},\n  \"correct_intent\": null,\n  \"is_correct\": null\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2112,
+        432
+      ],
+      "id": "25285403-37c1-4366-9525-3a778d552ca7",
+      "name": "Supabase — Upsert Training Example",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://bkzgoccwizwtjjuxjxyt.supabase.co/rest/v1/training_intent_stats?intent=eq.{{ $json.intent }}&order=generated_at.desc&limit=1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJremdvY2N3aXp3dGpqdXhqeHl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NjUxNTIsImV4cCI6MjA3ODQ0MTE1Mn0.gtjTo_tGpDVTrAf0wwVNW17j9o0Mwhw76FHRO4TaC78"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        992,
+        128
+      ],
+      "id": "7ffabe9e-5b15-4303-9359-c2a8bdf3e921",
+      "name": "GET precisión",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y7VRgC9ZABE9kFDw",
+          "name": "Header Auth account - Supabase jousfit.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Captura segura de entradas (evita errores)\nconst inputs = $input.all();\n\n// Entrada 0 (Mapeo de variables) – SIEMPRE existe\nconst mapped = inputs[0]?.json || {};\n\n// Entrada 1 (GET precisión) – puede NO existir\nconst statsArray = inputs[1]?.json || [];\nconst stats = Array.isArray(statsArray) ? statsArray[0] : null;\n\n// Si no hay stats, bloquear autosend\nif (!stats) {\n  return [{\n    json: {\n      ...mapped,\n      autosend: false,\n      precision_pct: null,\n      autosend_reason: \"no_stats_yet\"\n    }\n  }];\n}\n\nconst precision = stats.precision_pct ?? null;\nconst confidence = parseFloat(mapped.confidence || 0);\n\nlet autosend = false;\nlet reason = \"\";\n\n// Regla 1 – Alta precisión\nif (precision !== null && precision >= 80 && confidence >= 0.60) {\n  autosend = true;\n  reason = \"precision>=80_confidence>=0.60\";\n\n// Regla 2 – Precisión media\n} else if (precision !== null && precision >= 60 && confidence >= 0.75) {\n  autosend = true;\n  reason = \"precision>=60_confidence>=0.75\";\n\n// Regla 3 – Baja precisión o falta de datos\n} else {\n  autosend = false;\n  reason = \"low_precision_or_low_confidence\";\n}\n\nreturn [{\n  json: {\n    ...mapped,\n    autosend,\n    precision_pct: precision,\n    autosend_reason: reason\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "3e52109c-66bd-4529-afa6-357fa85ff395",
+      "name": "Autosend Dinámico"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2025-12-17T03:16:27.957Z",
+      "createdAt": "2025-12-17T03:16:27.957Z",
+      "role": "workflow:owner",
+      "workflowId": "tpBIoGtETxbkEDkx",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-17T03:25:08.502Z",
+  "versionId": "03f8e2c9-81d6-45b5-bc14-a93c1ad4363d"
+}
