@@ -1,0 +1,839 @@
+{
+  "active": true,
+  "activeVersion": {
+    "updatedAt": "2026-01-09T22:06:58.000Z",
+    "createdAt": "2026-01-09T22:06:57.356Z",
+    "versionId": "41e0b43a-ebb0-4af1-9175-27a66cfef8ae",
+    "workflowId": "qEjUekaoWV7hU1hR",
+    "nodes": [
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "524e76bc-d9b3-4edb-b85c-9342d34c5807",
+                "name": "conversation_id",
+                "value": "={{ $json.conversation_id }}",
+                "type": "number"
+              },
+              {
+                "id": "31c53f32-cc72-48a6-bf63-8e905d4b72c8",
+                "name": "message_text",
+                "value": "={{ $json.last_customer_message }}",
+                "type": "string"
+              },
+              {
+                "id": "7a1f6c7f-21c1-47aa-a217-a0b080d37797",
+                "name": "stage",
+                "value": "={{ $json.stage }}",
+                "type": "string"
+              },
+              {
+                "id": "6a4d2f54-6501-4256-ad46-df7145fe10f8",
+                "name": "intent",
+                "value": "={{ $json.intent }}",
+                "type": "string"
+              },
+              {
+                "id": "f5d703ef-c3f6-4f58-b14c-fe388e50d148",
+                "name": "last_ai_reply",
+                "value": "={{ $json.last_ai_reply }}",
+                "type": "string"
+              },
+              {
+                "id": "0daab5a4-2979-41c4-b0cd-2ecb672b82ae",
+                "name": "last_customer_message",
+                "value": "={{ $json.last_customer_message }}",
+                "type": "string"
+              },
+              {
+                "id": "5b358143-3a26-42dc-8aa5-26a1cb688068",
+                "name": "fallback_count",
+                "value": "",
+                "type": "string"
+              },
+              {
+                "id": "83919d0d-a5c6-45ac-a6d1-03272c043a3e",
+                "name": "confidence",
+                "value": "={{ $json.confidence }}",
+                "type": "number"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -48,
+          -160
+        ],
+        "id": "062f2847-0790-471c-88bd-752d2d4cacc3",
+        "name": "Preparar contexto IA"
+      },
+      {
+        "parameters": {
+          "modelId": {
+            "__rl": true,
+            "value": "gpt-4o-mini",
+            "mode": "list",
+            "cachedResultName": "GPT-4O-MINI"
+          },
+          "responses": {
+            "values": [
+              {
+                "role": "system",
+                "content": "You classify user intent.\nDo NOT manage conversation state.\nDo NOT decide workflow steps.\nOnly output intent classification and handoff signals."
+              },
+              {
+                "content": "={\n  \"message\": \"{{ $json.message_text }}\",\n  \"stage\": \"{{ $json.stage }}\",\n  \"last_ai_reply\": \"{{ $json.last_ai_reply }}\"\n}\n"
+              }
+            ]
+          },
+          "builtInTools": {},
+          "options": {
+            "maxTokens": 150,
+            "textFormat": {
+              "textOptions": {
+                "type": "json_schema",
+                "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"order_status\",\n        \"digital_order\",\n        \"human_request\",\n        \"unknown\"\n      ]\n    },\n    \"confidence\": {\n      \"type\": \"number\",\n      \"minimum\": 0,\n      \"maximum\": 1\n    },\n    \"needs_human\": {\n      \"type\": \"boolean\"\n    },\n    \"reason\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\"intent\", \"confidence\", \"needs_human\", \"reason\"],\n  \"additionalProperties\": false\n}\n"
+              }
+            },
+            "temperature": 0
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 2.1,
+        "position": [
+          304,
+          -160
+        ],
+        "id": "c853de2a-1752-4cc5-8a1e-e4d27b6f17dc",
+        "name": "IA Clasificador",
+        "credentials": {
+          "openAiApi": {
+            "id": "Ac8tz0tDRVIEbRMv",
+            "name": "OpenAi account - soporte@valtmx.com"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const ia = $json;\n\nreturn [{\n  ...$json,\n  ia_intent: ia.intent || 'unknown',\n  ia_confidence: typeof ia.confidence === 'number' ? ia.confidence : 0,\n  ia_needs_human: ia.needs_human === true,\n  ia_sentiment: ia.sentiment || 'neutral',\n  ia_complexity: ia.complexity || 'low'\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          368,
+          80
+        ],
+        "id": "27d75118-0215-497a-af61-7d9be81adfd1",
+        "name": "Normalizar salida IA"
+      },
+      {
+        "parameters": {
+          "jsCode": "let route = 'clarify';\nlet handoff = false;\n\nconst fallbackCount = Number($json.fallback_count || 0);\n\n// 1. Reglas duras de handoff\nif ($json.ia_needs_human === true) handoff = true;\nif (fallbackCount >= 2) handoff = true;\nif (\n  $json.ia_sentiment === 'frustrated' &&\n  $json.ia_complexity === 'high'\n) handoff = true;\n\n// 2. Decisión principal\nif (handoff) {\n  route = 'handoff_humano';\n\n} else if ($json.ia_intent === 'order_status') {\n  route = 'order_status';\n\n} else if ($json.ia_intent === 'digital_order') {\n  route = 'digital_order';\n\n} else {\n  route = 'clarify';\n}\n\nreturn [{\n  ...$json,\n  v5_route: route,\n  v5_handoff: handoff\n}];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          592,
+          80
+        ],
+        "id": "d5fa18ae-a101-42c8-90a8-a90383a9cdd9",
+        "name": "Decisión Engine"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.v5_route === 'handoff_humano' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      },
+                      "id": "612ed06f-fcc2-4ee9-9462-dac79cd9c512"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Handoff Humano"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "11695e64-4dcd-419b-83cd-507d2537c145",
+                      "leftValue": "={{ $json.v5_route === 'digital_order' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "WDigital"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "6dea3f2b-6918-4356-b77a-b26d05c9206d",
+                      "leftValue": "={{ $json.v5_route === 'clarify' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Respuesta de aclaración"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "68b7b686-5721-4243-a627-3ae776d38b83",
+                      "leftValue": "={{ $json.v5_route === 'order_status' }}",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "boolean",
+                        "operation": "true",
+                        "singleValue": true
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "V3 - Order Status"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "bff6e81a-1070-4c0c-a454-f2aaad70030c",
+                      "leftValue": "",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "Default"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          816,
+          32
+        ],
+        "id": "f064ebc8-3a5d-4ec5-9d26-6510bddb2e81",
+        "name": "Router Semantico"
+      },
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1200,
+          80
+        ],
+        "id": "8a5a4dbb-cdc8-4875-b185-ea7865554c94",
+        "name": "Regresar a V7"
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          128,
+          0
+        ],
+        "id": "58e46fff-939b-48d1-a340-60574f6d29c3",
+        "name": "Entrada desde V1"
+      }
+    ],
+    "connections": {
+      "Preparar contexto IA": {
+        "main": [
+          [
+            {
+              "node": "IA Clasificador",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IA Clasificador": {
+        "main": [
+          [
+            {
+              "node": "Normalizar salida IA",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalizar salida IA": {
+        "main": [
+          [
+            {
+              "node": "Decisión Engine",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Decisión Engine": {
+        "main": [
+          [
+            {
+              "node": "Router Semantico",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Router Semantico": {
+        "main": [
+          [
+            {
+              "node": "Regresar a V7",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Regresar a V7",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Regresar a V7",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Regresar a V7",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Regresar a V7",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Entrada desde V1": {
+        "main": [
+          [
+            {
+              "node": "Preparar contexto IA",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Kevin Quiroz",
+    "name": "Version 41e0b43a",
+    "description": "",
+    "autosaved": false
+  },
+  "activeVersionId": "41e0b43a-ebb0-4af1-9175-27a66cfef8ae",
+  "connections": {
+    "Preparar contexto IA": {
+      "main": [
+        [
+          {
+            "node": "IA Clasificador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Clasificador": {
+      "main": [
+        [
+          {
+            "node": "Normalizar salida IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar salida IA": {
+      "main": [
+        [
+          {
+            "node": "Decisión Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decisión Engine": {
+      "main": [
+        [
+          {
+            "node": "Router Semantico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router Semantico": {
+      "main": [
+        [
+          {
+            "node": "Regresar a V7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Regresar a V7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Regresar a V7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Regresar a V7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Regresar a V7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entrada desde V1": {
+      "main": [
+        [
+          {
+            "node": "Preparar contexto IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-01-07T18:02:24.543Z",
+  "id": "qEjUekaoWV7hU1hR",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Clasificador - V5",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "524e76bc-d9b3-4edb-b85c-9342d34c5807",
+              "name": "conversation_id",
+              "value": "={{ $json.conversation_id }}",
+              "type": "number"
+            },
+            {
+              "id": "31c53f32-cc72-48a6-bf63-8e905d4b72c8",
+              "name": "message_text",
+              "value": "={{ $json.last_customer_message }}",
+              "type": "string"
+            },
+            {
+              "id": "7a1f6c7f-21c1-47aa-a217-a0b080d37797",
+              "name": "stage",
+              "value": "={{ $json.stage }}",
+              "type": "string"
+            },
+            {
+              "id": "6a4d2f54-6501-4256-ad46-df7145fe10f8",
+              "name": "intent",
+              "value": "={{ $json.intent }}",
+              "type": "string"
+            },
+            {
+              "id": "f5d703ef-c3f6-4f58-b14c-fe388e50d148",
+              "name": "last_ai_reply",
+              "value": "={{ $json.last_ai_reply }}",
+              "type": "string"
+            },
+            {
+              "id": "0daab5a4-2979-41c4-b0cd-2ecb672b82ae",
+              "name": "last_customer_message",
+              "value": "={{ $json.last_customer_message }}",
+              "type": "string"
+            },
+            {
+              "id": "5b358143-3a26-42dc-8aa5-26a1cb688068",
+              "name": "fallback_count",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "83919d0d-a5c6-45ac-a6d1-03272c043a3e",
+              "name": "confidence",
+              "value": "={{ $json.confidence }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        -160
+      ],
+      "id": "062f2847-0790-471c-88bd-752d2d4cacc3",
+      "name": "Preparar contexto IA"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You classify user intent.\nDo NOT manage conversation state.\nDo NOT decide workflow steps.\nOnly output intent classification and handoff signals."
+            },
+            {
+              "content": "={\n  \"message\": \"{{ $json.message_text }}\",\n  \"stage\": \"{{ $json.stage }}\",\n  \"last_ai_reply\": \"{{ $json.last_ai_reply }}\"\n}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 150,
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"order_status\",\n        \"digital_order\",\n        \"human_request\",\n        \"unknown\"\n      ]\n    },\n    \"confidence\": {\n      \"type\": \"number\",\n      \"minimum\": 0,\n      \"maximum\": 1\n    },\n    \"needs_human\": {\n      \"type\": \"boolean\"\n    },\n    \"reason\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\"intent\", \"confidence\", \"needs_human\", \"reason\"],\n  \"additionalProperties\": false\n}\n"
+            }
+          },
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        304,
+        -160
+      ],
+      "id": "c853de2a-1752-4cc5-8a1e-e4d27b6f17dc",
+      "name": "IA Clasificador",
+      "credentials": {
+        "openAiApi": {
+          "id": "Ac8tz0tDRVIEbRMv",
+          "name": "OpenAi account - soporte@valtmx.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ia = $json;\n\nreturn [{\n  ...$json,\n  ia_intent: ia.intent || 'unknown',\n  ia_confidence: typeof ia.confidence === 'number' ? ia.confidence : 0,\n  ia_needs_human: ia.needs_human === true,\n  ia_sentiment: ia.sentiment || 'neutral',\n  ia_complexity: ia.complexity || 'low'\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        80
+      ],
+      "id": "27d75118-0215-497a-af61-7d9be81adfd1",
+      "name": "Normalizar salida IA"
+    },
+    {
+      "parameters": {
+        "jsCode": "let route = 'clarify';\nlet handoff = false;\n\nconst fallbackCount = Number($json.fallback_count || 0);\n\n// 1. Reglas duras de handoff\nif ($json.ia_needs_human === true) handoff = true;\nif (fallbackCount >= 2) handoff = true;\nif (\n  $json.ia_sentiment === 'frustrated' &&\n  $json.ia_complexity === 'high'\n) handoff = true;\n\n// 2. Decisión principal\nif (handoff) {\n  route = 'handoff_humano';\n\n} else if ($json.ia_intent === 'order_status') {\n  route = 'order_status';\n\n} else if ($json.ia_intent === 'digital_order') {\n  route = 'digital_order';\n\n} else {\n  route = 'clarify';\n}\n\nreturn [{\n  ...$json,\n  v5_route: route,\n  v5_handoff: handoff\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        80
+      ],
+      "id": "d5fa18ae-a101-42c8-90a8-a90383a9cdd9",
+      "name": "Decisión Engine"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.v5_route === 'handoff_humano' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "612ed06f-fcc2-4ee9-9462-dac79cd9c512"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Handoff Humano"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "11695e64-4dcd-419b-83cd-507d2537c145",
+                    "leftValue": "={{ $json.v5_route === 'digital_order' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "WDigital"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6dea3f2b-6918-4356-b77a-b26d05c9206d",
+                    "leftValue": "={{ $json.v5_route === 'clarify' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Respuesta de aclaración"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "68b7b686-5721-4243-a627-3ae776d38b83",
+                    "leftValue": "={{ $json.v5_route === 'order_status' }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "V3 - Order Status"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bff6e81a-1070-4c0c-a454-f2aaad70030c",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Default"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        32
+      ],
+      "id": "f064ebc8-3a5d-4ec5-9d26-6510bddb2e81",
+      "name": "Router Semantico"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        80
+      ],
+      "id": "8a5a4dbb-cdc8-4875-b185-ea7865554c94",
+      "name": "Regresar a V7"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        0
+      ],
+      "id": "58e46fff-939b-48d1-a340-60574f6d29c3",
+      "name": "Entrada desde V1"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-07T18:02:24.547Z",
+      "createdAt": "2026-01-07T18:02:24.547Z",
+      "role": "workflow:owner",
+      "workflowId": "qEjUekaoWV7hU1hR",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-10T19:03:25.316Z",
+  "versionId": "41e0b43a-ebb0-4af1-9175-27a66cfef8ae"
+}
