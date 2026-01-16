@@ -1,0 +1,36 @@
+{
+  "active": false,
+  "activeVersion": null,
+  "activeVersionId": null,
+  "connections": {},
+  "createdAt": "2026-01-14T22:39:09.104Z",
+  "id": "f32QfpQOvzymStUDlrQ8u",
+  "isArchived": false,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "name": "Cubbo Fulfillment Gate",
+  "nodes": [],
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Mexico_City",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "shared": [
+    {
+      "updatedAt": "2026-01-14T22:39:09.110Z",
+      "createdAt": "2026-01-14T22:39:09.110Z",
+      "role": "workflow:owner",
+      "workflowId": "f32QfpQOvzymStUDlrQ8u",
+      "projectId": "AxsDoOSRz0ComKfA"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-01-15T05:00:05.175Z",
+  "versionId": "f19ec075-b0ac-4b18-a3ee-3de66d00c0e2"
+}
